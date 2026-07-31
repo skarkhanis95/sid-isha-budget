@@ -17,14 +17,14 @@ export function Header({
       {/* Mobile Title */}
       <div className="flex items-center gap-2.5 md:hidden">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white text-xs shadow-md">
-          HF
+          SB
         </div>
-        <span className="font-bold text-base tracking-tight text-foreground">Finance</span>
+        <span className="font-bold text-base tracking-tight text-foreground">SidIsha Budget</span>
       </div>
 
       {/* Desktop Breadcrumb/Title Placeholder */}
       <div className="hidden md:block">
-        <h2 className="text-sm font-semibold text-muted-foreground">Household Finance Manager</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground">SidIsha Budget</h2>
       </div>
 
       {/* Right Controls */}

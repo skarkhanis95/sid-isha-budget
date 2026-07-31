@@ -3,10 +3,8 @@
 import React, { useState } from "react";
 import { loginAction } from "@/app/actions/auth-actions";
 import { Lock, User, AlertCircle, ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,8 +21,8 @@ export default function LoginPage() {
         setError(result.error);
         setIsLoading(false);
       } else if (result?.success) {
-        router.push("/dashboard");
-        router.refresh();
+        // Full page location transition guarantees session cookie is sent to /dashboard
+        window.location.href = "/dashboard";
       } else {
         setIsLoading(false);
       }
@@ -40,13 +38,13 @@ export default function LoginPage() {
       {/* App Branding */}
       <div className="text-center space-y-3">
         <div className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 items-center justify-center font-extrabold text-white text-2xl shadow-xl shadow-blue-500/25">
-          HF
+          SB
         </div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight">
-          Household Finance
+          SidIsha Budget
         </h1>
         <p className="text-sm text-muted-foreground">
-          Sign in to manage income, expenses, and account balances
+          Sign in to manage household income, expenses, and account balances
         </p>
       </div>
 

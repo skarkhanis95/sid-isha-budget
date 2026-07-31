@@ -7,7 +7,6 @@ import bcrypt from "bcryptjs";
 import { createSession, destroySession } from "@/lib/auth/session";
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from "@/lib/auth/rate-limit";
 import { redirect } from "next/navigation";
-import { seedDatabase } from "@/lib/db/seed";
 
 export async function loginAction(prevState: { error?: string } | null, formData: FormData) {
   try {
@@ -16,12 +15,6 @@ export async function loginAction(prevState: { error?: string } | null, formData
 
     if (!username || !password) {
       return { error: "Please enter both username and password." };
-    }
-
-    try {
-      await seedDatabase();
-    } catch (e) {
-      console.warn("DB Seed check warning:", e);
     }
 
     const rateCheck = checkRateLimit(username);

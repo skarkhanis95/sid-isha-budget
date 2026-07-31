@@ -43,11 +43,11 @@ export function Navigation({ userDisplayName }: { userDisplayName?: string }) {
         <div className="space-y-6">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
-              HF
+              SB
             </div>
             <div>
-              <h1 className="font-bold text-lg leading-tight tracking-tight text-white">Finance v2</h1>
-              <p className="text-xs text-muted-foreground">Household Budget</p>
+              <h1 className="font-bold text-base leading-tight tracking-tight text-white">SidIsha Budget</h1>
+              <p className="text-xs text-muted-foreground">Household Manager</p>
             </div>
           </div>
 

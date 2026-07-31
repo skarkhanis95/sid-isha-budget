@@ -125,7 +125,7 @@ export async function processDailyNotifications() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     chat_id: tgLink.telegramChatId,
-                    text: `🔔 Household Finance Alert\n\n${msg}`,
+                    text: `🔔 SidIsha Budget Alert\n\n${msg}`,
                   }),
                 });
 

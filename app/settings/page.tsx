@@ -1,5 +1,5 @@
 import React from "react";
-import { db } from "@/lib/db";
+import { db, isTursoCloud } from "@/lib/db";
 import * as schema from "@/drizzle/schema";
 import { verifySession } from "@/lib/auth/session";
 import { SettingsClient } from "@/components/settings/settings-client";
@@ -29,6 +29,8 @@ export default async function SettingsPage() {
       userId={session.userId}
       settings={settings}
       telegramLink={telegramLink}
+      isTursoCloud={isTursoCloud}
+      tursoUrl={process.env.TURSO_DATABASE_URL || null}
     />
   );
 }

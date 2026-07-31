@@ -82,7 +82,7 @@ async function pollTelegram() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     chat_id: chatId,
-                    text: "✅ Successfully connected your Telegram account to Household Finance Manager! You will now receive due-date & funding alerts here.",
+                    text: "✅ Successfully connected your Telegram account to SidIsha Budget! You will now receive due-date & funding alerts here.",
                   }),
                 });
 
@@ -93,7 +93,7 @@ async function pollTelegram() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     chat_id: chatId,
-                    text: `⚠️ Link code "${code}" is invalid or expired. Please generate a new code in your Household Finance App Settings (/settings).`,
+                    text: `⚠️ Link code "${code}" is invalid or expired. Please generate a new code in your SidIsha Budget App Settings (/settings).`,
                   }),
                 });
                 console.log(`⚠️ Invalid or expired code received: ${code}`);
@@ -105,7 +105,7 @@ async function pollTelegram() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   chat_id: chatId,
-                  text: "👋 Welcome to Household Finance Bot!\n\nTo connect your account:\n1. Open App Settings (/settings)\n2. Click 'Connect Telegram Account' to generate your code\n3. Send `/start YOUR_CODE` here!",
+                  text: "👋 Welcome to SidIsha Budget Bot!\n\nTo connect your account:\n1. Open App Settings (/settings)\n2. Click 'Connect Telegram Account' to generate your code\n3. Send `/start YOUR_CODE` here!",
                 }),
               });
               console.log(`ℹ️ Received plain /start from chat ${chatId}`);

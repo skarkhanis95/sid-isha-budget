@@ -12,13 +12,13 @@ import { eq, desc } from "drizzle-orm";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Household Finance Manager",
+  title: "SidIsha Budget",
   description: "Mobile-first, password-protected household finance and budget management app",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Household Finance",
+    title: "SidIsha Budget",
   },
 };
 

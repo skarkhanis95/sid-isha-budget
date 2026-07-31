@@ -2,16 +2,39 @@
 
 import React, { useState } from "react";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Monitor, Bell, Send, Lock, ExternalLink, CheckCircle2, ShieldAlert } from "lucide-react";
-import { updateNotificationSettingsAction, generateTelegramLinkCodeAction, disconnectTelegramAction } from "@/app/actions/notification-actions";
+import {
+  Moon,
+  Sun,
+  Monitor,
+  Bell,
+  Send,
+  ExternalLink,
+  CheckCircle2,
+  Database,
+  Server,
+  HardDrive,
+} from "lucide-react";
+import {
+  updateNotificationSettingsAction,
+  generateTelegramLinkCodeAction,
+  disconnectTelegramAction,
+} from "@/app/actions/notification-actions";
 
 interface SettingsClientProps {
   userId: string;
   settings: any;
   telegramLink: any;
+  isTursoCloud?: boolean;
+  tursoUrl?: string | null;
 }
 
-export function SettingsClient({ userId, settings, telegramLink }: SettingsClientProps) {
+export function SettingsClient({
+  userId,
+  settings,
+  telegramLink,
+  isTursoCloud = false,
+  tursoUrl = null,
+}: SettingsClientProps) {
   const { theme, setTheme } = useTheme();
 
   const [leadTimeDays, setLeadTimeDays] = useState(settings?.leadTimeDays ?? 1);
@@ -50,7 +73,45 @@ export function SettingsClient({ userId, settings, telegramLink }: SettingsClien
     <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Settings & Preferences</h1>
-        <p className="text-xs text-muted-foreground">Manage theme, notification alerts, and Telegram bot connections</p>
+        <p className="text-xs text-muted-foreground">Manage database, appearance theme, notification alerts, and Telegram bot</p>
+      </div>
+
+      {/* Database Connection Status Card */}
+      <div className="glass-panel p-6 rounded-3xl space-y-3">
+        <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+          <Database className="w-5 h-5 text-primary" />
+          Active Database Connection
+        </h3>
+
+        <div className="p-4 rounded-2xl bg-accent/30 border border-border/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
+                isTursoCloud ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
+              }`}
+            >
+              {isTursoCloud ? <Server className="w-5 h-5" /> : <HardDrive className="w-5 h-5" />}
+            </div>
+            <div>
+              <div className="font-bold text-sm text-foreground">
+                {isTursoCloud ? "Turso Cloud Database" : "Local SQLite Database"}
+              </div>
+              <p className="text-xs text-muted-foreground break-all">
+                {isTursoCloud ? `Connected to Turso (${tursoUrl})` : "Running locally on file:local.db"}
+              </p>
+            </div>
+          </div>
+
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-bold shrink-0 ${
+              isTursoCloud
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+            }`}
+          >
+            {isTursoCloud ? "⚡ Live Cloud DB" : "📁 Local DB"}
+          </span>
+        </div>
       </div>
 
       {/* Theme Options */}
