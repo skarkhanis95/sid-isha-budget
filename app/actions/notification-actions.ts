@@ -72,6 +72,44 @@ export async function disconnectTelegramAction(userId: string) {
   return { success: true };
 }
 
+export async function sendTestTelegramNotificationAction(userId: string) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) {
+    return { success: false, error: "TELEGRAM_BOT_TOKEN is missing in environment settings!" };
+  }
+
+  const [link] = await db
+    .select()
+    .from(schema.telegramLinks)
+    .where(eq(schema.telegramLinks.userId, userId));
+
+  if (!link || !link.telegramChatId) {
+    return { success: false, error: "Telegram account is not connected yet! Please connect Telegram first." };
+  }
+
+  try {
+    const messageText = `🧪 SidIsha Budget Test Alert\n\nYour Telegram notifications are working perfectly! You will receive due-date & funding warnings here.`;
+
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: link.telegramChatId,
+        text: messageText,
+      }),
+    });
+
+    const data = await res.json();
+    if (!data.ok) {
+      return { success: false, error: data.description || "Failed to send Telegram message." };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to communicate with Telegram API." };
+  }
+}
+
 export async function deleteNotificationLogAction(logId: string) {
   await db.delete(schema.notificationLog).where(eq(schema.notificationLog.id, logId));
   revalidatePath("/notifications");

@@ -13,11 +13,13 @@ import {
   Database,
   Server,
   HardDrive,
+  TestTube,
 } from "lucide-react";
 import {
   updateNotificationSettingsAction,
   generateTelegramLinkCodeAction,
   disconnectTelegramAction,
+  sendTestTelegramNotificationAction,
 } from "@/app/actions/notification-actions";
 
 interface SettingsClientProps {
@@ -42,8 +44,10 @@ export function SettingsClient({
   const [telegramEnabled, setTelegramEnabled] = useState(settings?.telegramEnabled ?? false);
   const [linkCode, setLinkCode] = useState<string | null>(telegramLink?.startCode || null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "HouseholdFinanceBot";
+  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "SidIshaBudgetBot";
 
   const handleUpdateSettings = async (newLead?: number, newInApp?: boolean, newTg?: boolean) => {
     const payload = {
@@ -66,6 +70,18 @@ export function SettingsClient({
       await disconnectTelegramAction(userId);
       setTelegramEnabled(false);
       setLinkCode(null);
+    }
+  };
+
+  const handleSendTestNotification = async () => {
+    setIsTesting(true);
+    setTestResult(null);
+    const res = await sendTestTelegramNotificationAction(userId);
+    setIsTesting(false);
+    if (res.success) {
+      setTestResult({ success: true, message: "Test alert sent successfully to Telegram!" });
+    } else {
+      setTestResult({ success: false, message: res.error || "Failed to send test message." });
     }
   };
 
@@ -225,12 +241,45 @@ export function SettingsClient({
                     className="w-5 h-5 accent-primary rounded cursor-pointer"
                   />
                 </div>
-                <button
-                  onClick={handleDisconnect}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-destructive bg-destructive/10 hover:bg-destructive/20 border border-destructive/20"
-                >
-                  Disconnect Telegram
-                </button>
+
+                {/* Test Notification Button & Result */}
+                <div className="p-3.5 rounded-xl bg-background border border-border/60 space-y-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <div>
+                      <div className="text-xs font-semibold text-foreground">Test Bot Connectivity</div>
+                      <p className="text-[11px] text-muted-foreground">Send a test notification to your connected Telegram account</p>
+                    </div>
+                    <button
+                      onClick={handleSendTestNotification}
+                      disabled={isTesting}
+                      className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md transition-all flex items-center gap-1.5 shrink-0"
+                    >
+                      <TestTube className="w-3.5 h-3.5" />
+                      {isTesting ? "Sending Test..." : "Send Test Notification"}
+                    </button>
+                  </div>
+
+                  {testResult && (
+                    <div
+                      className={`p-2.5 rounded-lg text-xs font-medium ${
+                        testResult.success
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-destructive/10 text-destructive border border-destructive/20"
+                      }`}
+                    >
+                      {testResult.message}
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={handleDisconnect}
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-destructive bg-destructive/10 hover:bg-destructive/20 border border-destructive/20"
+                  >
+                    Disconnect Telegram
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="space-y-3 pt-2 border-t border-border/40">
