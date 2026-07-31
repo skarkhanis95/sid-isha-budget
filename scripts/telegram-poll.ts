@@ -10,14 +10,15 @@ if (!botToken) {
 }
 
 console.log("🤖 Telegram Polling Service Started...");
-console.log("Listening for /start codes from Telegram...");
+console.log(`Bot Token: ${botToken.substring(0, 10)}...`);
+console.log("Listening live for Telegram messages...\n");
 
 let lastUpdateId = 0;
 
 async function pollTelegram() {
   try {
     const res = await fetch(
-      `https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`
+      `https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=10`
     );
     const data = await res.json();
 
@@ -29,6 +30,7 @@ async function pollTelegram() {
         if (msg && msg.text) {
           const chatId = String(msg.chat.id);
           const text = msg.text.trim();
+          console.log(`📩 Received message from Chat ID ${chatId}: "${text}"`);
 
           if (text.startsWith("/start")) {
             const parts = text.split(" ");
@@ -66,7 +68,7 @@ async function pollTelegram() {
                   }),
                 });
 
-                console.log(`✅ Successfully linked Telegram Chat ID ${chatId} for user ${link.userId}`);
+                console.log(`🎉 SUCCESS: Linked Telegram Chat ID ${chatId} to user ${link.userId}`);
               } else {
                 await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                   method: "POST",
@@ -88,7 +90,7 @@ async function pollTelegram() {
                   text: "👋 Welcome to SidIsha Budget Bot!\n\nTo connect your account:\n1. Open App Settings (/settings)\n2. Click 'Connect Telegram Account' to generate your code\n3. Send `/start YOUR_CODE` here!",
                 }),
               });
-              console.log(`ℹ️ Received plain /start from chat ${chatId}`);
+              console.log(`ℹ️ Sent welcome instructions to chat ${chatId}`);
             }
           }
         }
