@@ -1,43 +1,51 @@
-// In-memory rate limiting map for login attempts
-const attemptsMap = new Map<string, { count: number; lockUntil: number }>();
+import { db } from "@/lib/db";
+import * as schema from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 
 const MAX_ATTEMPTS = 5;
 const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minutes lock after 5 failures
 
-export function checkRateLimit(ipOrUsername: string): { allowed: boolean; retryAfterMs?: number } {
-  const record = attemptsMap.get(ipOrUsername);
-  const now = Date.now();
+export async function checkRateLimit(ipOrUsername: string): Promise<{ allowed: boolean; retryAfterMs?: number }> {
+  const [record] = await db
+    .select()
+    .from(schema.loginAttempts)
+    .where(eq(schema.loginAttempts.identifier, ipOrUsername));
 
   if (!record) return { allowed: true };
 
-  if (record.lockUntil > now) {
-    return {
-      allowed: false,
-      retryAfterMs: record.lockUntil - now,
-    };
-  }
-
-  if (record.lockUntil <= now && record.count >= MAX_ATTEMPTS) {
-    // Lock expired, reset
-    attemptsMap.delete(ipOrUsername);
-    return { allowed: true };
+  const now = Date.now();
+  if (record.lockUntil && record.lockUntil > now) {
+    return { allowed: false, retryAfterMs: record.lockUntil - now };
   }
 
   return { allowed: true };
 }
 
-export function recordFailedAttempt(ipOrUsername: string): void {
+export async function recordFailedAttempt(ipOrUsername: string): Promise<void> {
+  const [record] = await db
+    .select()
+    .from(schema.loginAttempts)
+    .where(eq(schema.loginAttempts.identifier, ipOrUsername));
+
   const now = Date.now();
-  const record = attemptsMap.get(ipOrUsername) || { count: 0, lockUntil: 0 };
-  record.count += 1;
+  const nextCount = (record?.count ?? 0) + 1;
+  const lockUntil = nextCount >= MAX_ATTEMPTS ? now + LOCK_TIME_MS : record?.lockUntil ?? null;
 
-  if (record.count >= MAX_ATTEMPTS) {
-    record.lockUntil = now + LOCK_TIME_MS;
+  if (record) {
+    await db
+      .update(schema.loginAttempts)
+      .set({ count: nextCount, lockUntil })
+      .where(eq(schema.loginAttempts.identifier, ipOrUsername));
+  } else {
+    await db.insert(schema.loginAttempts).values({
+      id: `la_${crypto.randomUUID()}`,
+      identifier: ipOrUsername,
+      count: nextCount,
+      lockUntil,
+    });
   }
-
-  attemptsMap.set(ipOrUsername, record);
 }
 
-export function resetRateLimit(ipOrUsername: string): void {
-  attemptsMap.delete(ipOrUsername);
+export async function resetRateLimit(ipOrUsername: string): Promise<void> {
+  await db.delete(schema.loginAttempts).where(eq(schema.loginAttempts.identifier, ipOrUsername));
 }

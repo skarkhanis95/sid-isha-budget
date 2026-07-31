@@ -5,12 +5,10 @@ import { verifySession } from "@/lib/auth/session";
 import { eq, desc } from "drizzle-orm";
 import { Bell, Trash2, Calendar } from "lucide-react";
 import { deleteNotificationLogAction } from "@/app/actions/notification-actions";
-import { seedDatabase } from "@/lib/db/seed";
 
 export const revalidate = 0;
 
 export default async function NotificationsPage() {
-  await seedDatabase();
   const session = await verifySession();
 
   if (!session) return null;

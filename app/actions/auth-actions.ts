@@ -17,7 +17,7 @@ export async function loginAction(prevState: { error?: string } | null, formData
       return { error: "Please enter both username and password." };
     }
 
-    const rateCheck = checkRateLimit(username);
+    const rateCheck = await checkRateLimit(username);
     if (!rateCheck.allowed) {
       const minutes = Math.ceil((rateCheck.retryAfterMs || 0) / 60000);
       return { error: `Too many failed attempts. Please try again in ${minutes} minute(s).` };
@@ -29,17 +29,17 @@ export async function loginAction(prevState: { error?: string } | null, formData
       .where(eq(schema.users.username, username));
 
     if (!user) {
-      recordFailedAttempt(username);
+      await recordFailedAttempt(username);
       return { error: "Invalid username or password." };
     }
 
     const validPassword = await bcrypt.compare(password, user.passwordHash);
     if (!validPassword) {
-      recordFailedAttempt(username);
+      await recordFailedAttempt(username);
       return { error: "Invalid username or password." };
     }
 
-    resetRateLimit(username);
+    await resetRateLimit(username);
 
     await createSession({
       userId: user.id,

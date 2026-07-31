@@ -5,8 +5,18 @@ import * as schema from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { startMonth, syncTemplatesToMonth } from "@/lib/services/month-service";
+import { verifySession } from "@/lib/auth/session";
+
+async function requireSession() {
+  const session = await verifySession();
+  if (!session) {
+    throw new Error("Not authenticated");
+  }
+  return session;
+}
 
 export async function startMonthAction(monthKey: string) {
+  await requireSession();
   await startMonth(monthKey);
   revalidatePath("/dashboard");
   revalidatePath("/month");
@@ -14,6 +24,7 @@ export async function startMonthAction(monthKey: string) {
 }
 
 export async function syncTemplatesAction(monthId: string) {
+  await requireSession();
   await syncTemplatesToMonth(monthId);
   revalidatePath("/dashboard");
   revalidatePath("/month");
@@ -21,6 +32,7 @@ export async function syncTemplatesAction(monthId: string) {
 }
 
 export async function markExpenseStatusAction(expenseId: string, status: "pending" | "paid" | "skipped", paidDate?: string) {
+  await requireSession();
   const now = new Date().toISOString();
   const todayDate = now.split("T")[0];
 
@@ -58,6 +70,7 @@ export async function addExpenseAction(data: {
   dueDate: string;
   notes?: string;
 }) {
+  await requireSession();
   const now = new Date().toISOString();
   const id = `exp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
@@ -94,6 +107,7 @@ export async function updateExpenseAction(expenseId: string, data: {
   paidDate?: string | null;
   notes?: string;
 }) {
+  await requireSession();
   const now = new Date().toISOString();
 
   await db
@@ -110,6 +124,7 @@ export async function updateExpenseAction(expenseId: string, data: {
 }
 
 export async function deleteExpenseAction(expenseId: string) {
+  await requireSession();
   await db.delete(schema.expenses).where(eq(schema.expenses.id, expenseId));
   revalidatePath("/dashboard");
   revalidatePath("/month");
@@ -124,6 +139,7 @@ export async function addIncomeAction(data: {
   receivedDate: string;
   notes?: string;
 }) {
+  await requireSession();
   const now = new Date().toISOString();
   const id = `inc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
@@ -145,6 +161,7 @@ export async function addIncomeAction(data: {
 }
 
 export async function deleteIncomeAction(incomeId: string) {
+  await requireSession();
   await db.delete(schema.income).where(eq(schema.income.id, incomeId));
   revalidatePath("/dashboard");
   revalidatePath("/month");
@@ -160,6 +177,7 @@ export async function recordTransferAction(data: {
   transferDate: string;
   notes?: string;
 }) {
+  await requireSession();
   const now = new Date().toISOString();
   const id = `tr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
@@ -189,6 +207,7 @@ export async function createAccountAction(data: {
   type: string;
   openingBalance: number;
 }) {
+  await requireSession();
   const now = new Date().toISOString();
   const id = `acc_${Date.now()}`;
 
@@ -209,6 +228,7 @@ export async function createAccountAction(data: {
 }
 
 export async function updateAccountAction(accountId: string, data: Partial<typeof schema.accounts.$inferInsert>) {
+  await requireSession();
   const now = new Date().toISOString();
   await db.update(schema.accounts).set({ ...data, updatedAt: now }).where(eq(schema.accounts.id, accountId));
   revalidatePath("/accounts");
@@ -216,6 +236,7 @@ export async function updateAccountAction(accountId: string, data: Partial<typeo
 }
 
 export async function deleteAccountAction(accountId: string, reassignAccountId?: string) {
+  await requireSession();
   if (reassignAccountId) {
     await db.update(schema.expenses).set({ paymentAccountId: reassignAccountId }).where(eq(schema.expenses.paymentAccountId, accountId));
     await db.update(schema.income).set({ accountId: reassignAccountId }).where(eq(schema.income.accountId, accountId));
@@ -227,6 +248,7 @@ export async function deleteAccountAction(accountId: string, reassignAccountId?:
 
 // Category CRUD
 export async function createCategoryAction(data: { name: string; icon: string; color: string }) {
+  await requireSession();
   const now = new Date().toISOString();
   const id = `cat_${Date.now()}`;
 
@@ -246,6 +268,7 @@ export async function createCategoryAction(data: { name: string; icon: string; c
 }
 
 export async function updateCategoryAction(categoryId: string, data: Partial<typeof schema.categories.$inferInsert>) {
+  await requireSession();
   const now = new Date().toISOString();
   await db.update(schema.categories).set({ ...data, updatedAt: now }).where(eq(schema.categories.id, categoryId));
   revalidatePath("/categories");
@@ -253,6 +276,7 @@ export async function updateCategoryAction(categoryId: string, data: Partial<typ
 }
 
 export async function deleteCategoryAction(categoryId: string, reassignCategoryId?: string) {
+  await requireSession();
   if (reassignCategoryId) {
     await db.update(schema.expenses).set({ categoryId: reassignCategoryId }).where(eq(schema.expenses.categoryId, categoryId));
   }
@@ -271,6 +295,7 @@ export async function createTemplateAction(data: {
   dueDay?: number | null;
   notes?: string;
 }) {
+  await requireSession();
   const now = new Date().toISOString();
   const id = `tmpl_${Date.now()}`;
 
@@ -296,6 +321,7 @@ export async function createTemplateAction(data: {
 }
 
 export async function updateTemplateAction(templateId: string, data: Partial<typeof schema.expenseTemplates.$inferInsert>) {
+  await requireSession();
   const now = new Date().toISOString();
   await db.update(schema.expenseTemplates).set({ ...data, updatedAt: now }).where(eq(schema.expenseTemplates.id, templateId));
   revalidatePath("/templates");
@@ -305,6 +331,7 @@ export async function updateTemplateAction(templateId: string, data: Partial<typ
 }
 
 export async function deleteTemplateAction(templateId: string) {
+  await requireSession();
   await db.delete(schema.expenseTemplates).where(eq(schema.expenseTemplates.id, templateId));
   revalidatePath("/templates");
   revalidatePath("/month");

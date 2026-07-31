@@ -4,6 +4,11 @@ import * as schema from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!webhookSecret || request.headers.get("x-telegram-bot-api-secret-token") !== webhookSecret) {
+    return NextResponse.json({ ok: false }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
 

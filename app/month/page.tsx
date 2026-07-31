@@ -4,7 +4,6 @@ import * as schema from "@/drizzle/schema";
 import { getMonth } from "@/lib/services/month-service";
 import { MonthViewClient } from "@/components/month/month-view-client";
 import { eq } from "drizzle-orm";
-import { seedDatabase } from "@/lib/db/seed";
 
 export const revalidate = 0;
 
@@ -13,8 +12,6 @@ export default async function MonthPage({
 }: {
   searchParams?: { key?: string };
 }) {
-  await seedDatabase();
-
   const now = new Date();
   const currentSystemKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const targetKey = searchParams?.key || currentSystemKey;

@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "household-finance-master-secret-key-2026-v2"
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required but not set.");
+}
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const PUBLIC_PATH_PREFIXES = ["/login", "/api/telegram/webhook", "/api/cron/notifications", "/_next", "/favicon.ico", "/manifest.json"];
 

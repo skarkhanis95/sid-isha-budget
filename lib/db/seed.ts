@@ -1,6 +1,11 @@
+import crypto from "crypto";
 import { db } from "./index";
 import * as schema from "@/drizzle/schema";
 import bcrypt from "bcryptjs";
+
+function generateStartCode(): string {
+  return crypto.randomBytes(6).toString("hex").toUpperCase();
+}
 
 export async function seedDatabase() {
   const now = new Date().toISOString();
@@ -113,6 +118,12 @@ export async function seedDatabase() {
       status TEXT NOT NULL DEFAULT 'pending',
       start_code TEXT UNIQUE
     );`,
+    `CREATE TABLE IF NOT EXISTS login_attempts (
+      id TEXT PRIMARY KEY,
+      identifier TEXT NOT NULL UNIQUE,
+      count INTEGER NOT NULL DEFAULT 0,
+      lock_until INTEGER
+    );`,
     `CREATE TABLE IF NOT EXISTS notification_log (
       id TEXT PRIMARY KEY,
       expense_id TEXT NOT NULL,
@@ -137,12 +148,22 @@ export async function seedDatabase() {
   console.log("Database uninitialized. Seeding clean structure...");
 
   // Seed Predefined Users (Siddharth & Isha)
-  const passwordHash = await bcrypt.hash("password123", 10);
+  // Passwords are generated randomly unless overridden via SEED_SID_PASSWORD / SEED_ISHA_PASSWORD.
+  // Change them from Settings (or re-seed) after first login.
+  const sidPassword = process.env.SEED_SID_PASSWORD || crypto.randomBytes(9).toString("base64url");
+  const ishaPassword = process.env.SEED_ISHA_PASSWORD || crypto.randomBytes(9).toString("base64url");
+
   const userList = [
-    { id: "usr_sid", username: "siddharth", passwordHash, displayName: "Siddharth", createdAt: now },
-    { id: "usr_isha", username: "isha", passwordHash, displayName: "Isha", createdAt: now },
+    { id: "usr_sid", username: "siddharth", passwordHash: await bcrypt.hash(sidPassword, 10), displayName: "Siddharth", createdAt: now },
+    { id: "usr_isha", username: "isha", passwordHash: await bcrypt.hash(ishaPassword, 10), displayName: "Isha", createdAt: now },
   ];
   await db.insert(schema.users).values(userList);
+
+  console.log("=".repeat(60));
+  console.log("Generated initial login credentials (save these now):");
+  console.log(`  siddharth / ${sidPassword}`);
+  console.log(`  isha      / ${ishaPassword}`);
+  console.log("=".repeat(60));
 
   for (const u of userList) {
     await db.insert(schema.notificationSettings).values({
@@ -160,7 +181,7 @@ export async function seedDatabase() {
       id: `tg_${u.id}`,
       userId: u.id,
       status: "pending",
-      startCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+      startCode: generateStartCode(),
     });
   }
 

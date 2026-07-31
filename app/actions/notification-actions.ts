@@ -4,12 +4,23 @@ import { db } from "@/lib/db";
 import * as schema from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { verifySession } from "@/lib/auth/session";
+import crypto from "crypto";
 
-export async function updateNotificationSettingsAction(userId: string, data: {
+async function requireUserId(): Promise<string> {
+  const session = await verifySession();
+  if (!session) {
+    throw new Error("Not authenticated");
+  }
+  return session.userId;
+}
+
+export async function updateNotificationSettingsAction(data: {
   leadTimeDays?: number;
   inAppEnabled?: boolean;
   telegramEnabled?: boolean;
 }) {
+  const userId = await requireUserId();
   const now = new Date().toISOString();
 
   await db
@@ -24,8 +35,9 @@ export async function updateNotificationSettingsAction(userId: string, data: {
   return { success: true };
 }
 
-export async function generateTelegramLinkCodeAction(userId: string) {
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+export async function generateTelegramLinkCodeAction() {
+  const userId = await requireUserId();
+  const code = crypto.randomBytes(6).toString("hex").toUpperCase();
 
   const [existing] = await db
     .select()
@@ -53,7 +65,8 @@ export async function generateTelegramLinkCodeAction(userId: string) {
   return { code };
 }
 
-export async function disconnectTelegramAction(userId: string) {
+export async function disconnectTelegramAction() {
+  const userId = await requireUserId();
   await db
     .update(schema.telegramLinks)
     .set({
@@ -72,7 +85,8 @@ export async function disconnectTelegramAction(userId: string) {
   return { success: true };
 }
 
-export async function sendTestTelegramNotificationAction(userId: string) {
+export async function sendTestTelegramNotificationAction() {
+  const userId = await requireUserId();
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) {
     return { success: false, error: "TELEGRAM_BOT_TOKEN is missing in environment settings!" };
@@ -111,6 +125,7 @@ export async function sendTestTelegramNotificationAction(userId: string) {
 }
 
 export async function deleteNotificationLogAction(logId: string) {
+  await requireUserId();
   await db.delete(schema.notificationLog).where(eq(schema.notificationLog.id, logId));
   revalidatePath("/notifications");
   return { success: true };

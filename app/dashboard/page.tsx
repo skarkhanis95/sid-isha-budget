@@ -5,7 +5,6 @@ import { getMonth } from "@/lib/services/month-service";
 import { formatMonthKey } from "@/lib/utils/formatters";
 import { calculateAccountBalances } from "@/lib/services/balance-service";
 import { generateTransferRecommendations } from "@/lib/services/transfer-planner";
-import { seedDatabase } from "@/lib/db/seed";
 import { eq } from "drizzle-orm";
 import {
   TrendingUp,
@@ -30,8 +29,6 @@ import { recordTransferAction, startMonthAction } from "@/app/actions/finance-ac
 export const revalidate = 0; // Dynamic server page
 
 export default async function DashboardPage() {
-  await seedDatabase();
-
   const now = new Date();
   const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const currentMonthRecord = await getMonth(currentMonthKey);

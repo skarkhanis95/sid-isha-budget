@@ -4,14 +4,11 @@ import * as schema from "@/drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import { generateTransferRecommendations } from "@/lib/services/transfer-planner";
 import { recordTransferAction } from "@/app/actions/finance-actions";
-import { seedDatabase } from "@/lib/db/seed";
 import { ArrowRightLeft, CheckCircle2, Calendar } from "lucide-react";
 
 export const revalidate = 0;
 
 export default async function TransfersPage() {
-  await seedDatabase();
-
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 

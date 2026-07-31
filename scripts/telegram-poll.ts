@@ -10,7 +10,6 @@ if (!botToken) {
 }
 
 console.log("🤖 Telegram Polling Service Started...");
-console.log(`Bot Token: ${botToken.substring(0, 10)}...`);
 console.log("Listening live for Telegram messages...\n");
 
 let lastUpdateId = 0;

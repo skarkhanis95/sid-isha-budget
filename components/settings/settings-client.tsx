@@ -23,7 +23,6 @@ import {
 } from "@/app/actions/notification-actions";
 
 interface SettingsClientProps {
-  userId: string;
   settings: any;
   telegramLink: any;
   isTursoCloud?: boolean;
@@ -31,7 +30,6 @@ interface SettingsClientProps {
 }
 
 export function SettingsClient({
-  userId,
   settings,
   telegramLink,
   isTursoCloud = false,
@@ -55,19 +53,19 @@ export function SettingsClient({
       inAppEnabled: newInApp !== undefined ? newInApp : inAppEnabled,
       telegramEnabled: newTg !== undefined ? newTg : telegramEnabled,
     };
-    await updateNotificationSettingsAction(userId, payload);
+    await updateNotificationSettingsAction(payload);
   };
 
   const handleGenerateLink = async () => {
     setIsGenerating(true);
-    const res = await generateTelegramLinkCodeAction(userId);
+    const res = await generateTelegramLinkCodeAction();
     setLinkCode(res.code);
     setIsGenerating(false);
   };
 
   const handleDisconnect = async () => {
     if (confirm("Disconnect Telegram notifications?")) {
-      await disconnectTelegramAction(userId);
+      await disconnectTelegramAction();
       setTelegramEnabled(false);
       setLinkCode(null);
     }
@@ -76,7 +74,7 @@ export function SettingsClient({
   const handleSendTestNotification = async () => {
     setIsTesting(true);
     setTestResult(null);
-    const res = await sendTestTelegramNotificationAction(userId);
+    const res = await sendTestTelegramNotificationAction();
     setIsTesting(false);
     if (res.success) {
       setTestResult({ success: true, message: "Test alert sent successfully to Telegram!" });

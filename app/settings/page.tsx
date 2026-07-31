@@ -4,12 +4,10 @@ import * as schema from "@/drizzle/schema";
 import { verifySession } from "@/lib/auth/session";
 import { SettingsClient } from "@/components/settings/settings-client";
 import { eq } from "drizzle-orm";
-import { seedDatabase } from "@/lib/db/seed";
 
 export const revalidate = 0;
 
 export default async function SettingsPage() {
-  await seedDatabase();
   const session = await verifySession();
 
   if (!session) return null;
@@ -26,7 +24,6 @@ export default async function SettingsPage() {
 
   return (
     <SettingsClient
-      userId={session.userId}
       settings={settings}
       telegramLink={telegramLink}
       isTursoCloud={isTursoCloud}

@@ -116,6 +116,13 @@ export const telegramLinks = sqliteTable("telegram_links", {
   startCode: text("start_code").unique(),
 });
 
+export const loginAttempts = sqliteTable("login_attempts", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull().unique(),
+  count: integer("count").notNull().default(0),
+  lockUntil: integer("lock_until"),
+});
+
 export const notificationLog = sqliteTable("notification_log", {
   id: text("id").primaryKey(),
   expenseId: text("expense_id").notNull(),
