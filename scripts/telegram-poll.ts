@@ -1,26 +1,6 @@
-import fs from "fs";
-import path from "path";
 import { db } from "../lib/db";
 import * as schema from "../drizzle/schema";
 import { eq } from "drizzle-orm";
-
-// Load .env.local natively without external dependencies
-try {
-  const envPath = path.join(process.cwd(), ".env.local");
-  if (fs.existsSync(envPath)) {
-    const envConfig = fs.readFileSync(envPath, "utf-8");
-    for (const line of envConfig.split("\n")) {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith("#") && trimmed.includes("=")) {
-        const [key, ...vals] = trimmed.split("=");
-        const k = key.trim();
-        if (k && !process.env[k]) {
-          process.env[k] = vals.join("=").trim();
-        }
-      }
-    }
-  }
-} catch (e) {}
 
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
