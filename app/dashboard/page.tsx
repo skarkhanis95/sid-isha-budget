@@ -103,13 +103,13 @@ export default async function DashboardPage() {
             <div className="glass-card p-4 rounded-2xl space-y-1">
               <div className="text-xs text-muted-foreground">Total Balance</div>
               <div className="text-lg font-bold text-foreground">
-                ₹{accountBalances.reduce((sum, acc) => sum + acc.currentBalance, 0).toLocaleString()}
+                ₹{accountBalances.reduce((sum, acc) => sum + acc.currentBalance, 0).toLocaleString("en-IN")}
               </div>
             </div>
             <div className="glass-card p-4 rounded-2xl space-y-1">
               <div className="text-xs text-muted-foreground">Total Projected Balance</div>
               <div className="text-lg font-bold text-purple-400">
-                ₹{accountBalances.reduce((sum, acc) => sum + acc.projectedBalance, 0).toLocaleString()}
+                ₹{accountBalances.reduce((sum, acc) => sum + acc.projectedBalance, 0).toLocaleString("en-IN")}
               </div>
             </div>
             {["Siddharth", "Isha"].map((personName) => {
@@ -120,11 +120,11 @@ export default async function DashboardPage() {
                 <React.Fragment key={personName}>
                   <div className="glass-card p-4 rounded-2xl space-y-1">
                     <div className="text-xs text-muted-foreground">{personName} Balance</div>
-                    <div className="text-lg font-bold text-emerald-400">₹{balance.toLocaleString()}</div>
+                    <div className="text-lg font-bold text-emerald-400">₹{balance.toLocaleString("en-IN")}</div>
                   </div>
                   <div className="glass-card p-4 rounded-2xl space-y-1">
                     <div className="text-xs text-muted-foreground">{personName} Projected Balance</div>
-                    <div className="text-lg font-bold text-purple-400">₹{projectedBalance.toLocaleString()}</div>
+                    <div className="text-lg font-bold text-purple-400">₹{projectedBalance.toLocaleString("en-IN")}</div>
                   </div>
                 </React.Fragment>
               );
@@ -240,7 +240,7 @@ export default async function DashboardPage() {
             <span>Total Income</span>
             <TrendingUp className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-xl font-bold text-emerald-400">₹{totalIncome.toLocaleString()}</div>
+          <div className="text-xl font-bold text-emerald-400">₹{totalIncome.toLocaleString("en-IN")}</div>
           <p className="text-[11px] text-muted-foreground">{monthIncomeList.length} income entries</p>
         </div>
 
@@ -250,7 +250,7 @@ export default async function DashboardPage() {
             <span>Budgeted Expenses</span>
             <CreditCard className="w-4 h-4 text-blue-400" />
           </div>
-          <div className="text-xl font-bold text-foreground">₹{budgetedExpenses.toLocaleString()}</div>
+          <div className="text-xl font-bold text-foreground">₹{budgetedExpenses.toLocaleString("en-IN")}</div>
           <p className="text-[11px] text-muted-foreground">{monthExpensesList.length} total expenses</p>
         </div>
 
@@ -260,7 +260,7 @@ export default async function DashboardPage() {
             <span>Paid Expenses</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="text-xl font-bold text-emerald-500">₹{paidExpenses.toLocaleString()}</div>
+          <div className="text-xl font-bold text-emerald-500">₹{paidExpenses.toLocaleString("en-IN")}</div>
           <p className="text-[11px] text-muted-foreground">
             {monthExpensesList.filter((e) => e.status === "paid").length} expenses paid
           </p>
@@ -272,7 +272,7 @@ export default async function DashboardPage() {
             <span>Pending Expenses</span>
             <Clock className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-xl font-bold text-amber-400">₹{pendingExpenses.toLocaleString()}</div>
+          <div className="text-xl font-bold text-amber-400">₹{pendingExpenses.toLocaleString("en-IN")}</div>
           <p className="text-[11px] text-muted-foreground">
             {monthExpensesList.filter((e) => e.status === "pending").length} remaining
           </p>
@@ -285,7 +285,7 @@ export default async function DashboardPage() {
             <Wallet className="w-4 h-4 text-indigo-400" />
           </div>
           <div className={`text-xl font-bold ${remainingBudget >= 0 ? "text-foreground" : "text-destructive"}`}>
-            ₹{remainingBudget.toLocaleString()}
+            ₹{remainingBudget.toLocaleString("en-IN")}
           </div>
           <p className="text-[11px] text-muted-foreground">Income minus budgeted</p>
         </div>
@@ -296,7 +296,7 @@ export default async function DashboardPage() {
             <span>Current Cash Available</span>
             <Wallet className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-xl font-bold text-foreground">₹{currentCashAvailable.toLocaleString()}</div>
+          <div className="text-xl font-bold text-foreground">₹{currentCashAvailable.toLocaleString("en-IN")}</div>
           <p className="text-[11px] text-muted-foreground">Across all active accounts</p>
         </div>
 
@@ -307,7 +307,7 @@ export default async function DashboardPage() {
             <TrendingUp className="w-4 h-4 text-purple-400" />
           </div>
           <div className={`text-xl font-bold ${projectedMonthEndBalance >= 0 ? "text-purple-400" : "text-destructive"}`}>
-            ₹{projectedMonthEndBalance.toLocaleString()}
+            ₹{projectedMonthEndBalance.toLocaleString("en-IN")}
           </div>
           <p className="text-[11px] text-muted-foreground">After pending expenses</p>
         </div>
@@ -319,7 +319,7 @@ export default async function DashboardPage() {
             <PiggyBank className="w-4 h-4 text-pink-400" />
           </div>
           <div className="text-xl font-bold text-pink-400">
-            ₹{savingsAmount.toLocaleString()} <span className="text-xs font-semibold text-muted-foreground">({savingsPercentage}%)</span>
+            ₹{savingsAmount.toLocaleString("en-IN")} <span className="text-xs font-semibold text-muted-foreground">({savingsPercentage}%)</span>
           </div>
           <p className="text-[11px] text-muted-foreground">Current monthly savings</p>
         </div>
@@ -334,32 +334,32 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3">
           <div className="glass-card p-4 rounded-2xl space-y-1">
             <div className="text-xs text-muted-foreground">Total Expenses</div>
-            <div className="text-lg font-bold text-foreground">₹{budgetedExpenses.toLocaleString()}</div>
+            <div className="text-lg font-bold text-foreground">₹{budgetedExpenses.toLocaleString("en-IN")}</div>
           </div>
           <div className="glass-card p-4 rounded-2xl space-y-1">
             <div className="text-xs text-muted-foreground">Total Balance</div>
-            <div className="text-lg font-bold text-foreground">₹{currentCashAvailable.toLocaleString()}</div>
+            <div className="text-lg font-bold text-foreground">₹{currentCashAvailable.toLocaleString("en-IN")}</div>
           </div>
           <div className="glass-card p-4 rounded-2xl space-y-1">
             <div className="text-xs text-muted-foreground">Total Projected Balance</div>
             <div className={`text-lg font-bold ${projectedMonthEndBalance >= 0 ? "text-purple-400" : "text-destructive"}`}>
-              ₹{projectedMonthEndBalance.toLocaleString()}
+              ₹{projectedMonthEndBalance.toLocaleString("en-IN")}
             </div>
           </div>
           {personStats.map((p) => (
             <React.Fragment key={p.name}>
               <div className="glass-card p-4 rounded-2xl space-y-1">
                 <div className="text-xs text-muted-foreground">{p.name} Expenses</div>
-                <div className="text-lg font-bold text-amber-400">₹{p.expenses.toLocaleString()}</div>
+                <div className="text-lg font-bold text-amber-400">₹{p.expenses.toLocaleString("en-IN")}</div>
               </div>
               <div className="glass-card p-4 rounded-2xl space-y-1">
                 <div className="text-xs text-muted-foreground">{p.name} Balance</div>
-                <div className="text-lg font-bold text-emerald-400">₹{p.balance.toLocaleString()}</div>
+                <div className="text-lg font-bold text-emerald-400">₹{p.balance.toLocaleString("en-IN")}</div>
               </div>
               <div className="glass-card p-4 rounded-2xl space-y-1">
                 <div className="text-xs text-muted-foreground">{p.name} Projected Balance</div>
                 <div className={`text-lg font-bold ${p.projectedBalance >= 0 ? "text-purple-400" : "text-destructive"}`}>
-                  ₹{p.projectedBalance.toLocaleString()}
+                  ₹{p.projectedBalance.toLocaleString("en-IN")}
                 </div>
               </div>
             </React.Fragment>
@@ -402,7 +402,7 @@ export default async function DashboardPage() {
                     </div>
 
                     <div className="text-right space-y-1">
-                      <div className="font-bold text-foreground">₹{exp.amount.toLocaleString()}</div>
+                      <div className="font-bold text-foreground">₹{exp.amount.toLocaleString("en-IN")}</div>
                       {hasShortfall ? (
                         <span className="inline-flex items-center gap-1 text-[10px] text-destructive font-semibold">
                           <AlertTriangle className="w-3 h-3" /> Shortfall Alert
@@ -437,7 +437,7 @@ export default async function DashboardPage() {
               recommendations.map((rec, idx) => (
                 <div key={idx} className="p-3.5 rounded-2xl bg-accent/30 border border-indigo-500/20 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm text-indigo-400">₹{rec.recommendedAmount.toLocaleString()}</span>
+                    <span className="font-bold text-sm text-indigo-400">₹{rec.recommendedAmount.toLocaleString("en-IN")}</span>
                     <form
                       action={async () => {
                         "use server";

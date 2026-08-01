@@ -224,7 +224,7 @@ export function TemplatesClient({
 
               <div className="flex items-center justify-between pt-3 border-t border-border/40 text-xs">
                 <div>
-                  <div className="font-extrabold text-base text-foreground">₹{tmpl.defaultAmount.toLocaleString()}</div>
+                  <div className="font-extrabold text-base text-foreground">₹{tmpl.defaultAmount.toLocaleString("en-IN")}</div>
                   {formatDueInfo(tmpl) && (
                     <div className="text-[11px] text-primary flex items-center gap-1 mt-0.5">
                       <Calendar className="w-3 h-3" />
@@ -288,7 +288,7 @@ export function TemplatesClient({
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{catName}</td>
                       <td className="py-3 px-4 text-muted-foreground">{accName}</td>
-                      <td className="py-3 px-4 font-bold text-foreground">₹{tmpl.defaultAmount.toLocaleString()}</td>
+                      <td className="py-3 px-4 font-bold text-foreground">₹{tmpl.defaultAmount.toLocaleString("en-IN")}</td>
                       <td className="py-3 px-4 text-muted-foreground">{formatDueInfo(tmpl) || "-"}</td>
                       <td className="py-3 px-4">
                         <button

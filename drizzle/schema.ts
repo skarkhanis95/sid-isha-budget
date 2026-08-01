@@ -14,6 +14,8 @@ export const accounts = sqliteTable("accounts", {
   owner: text("owner").notNull(),
   type: text("type").notNull(), // 'bank', 'cash', 'wallet', 'credit_card'
   openingBalance: real("opening_balance").notNull().default(0),
+  balanceOverride: real("balance_override"), // manual correction baseline
+  balanceOverrideDate: text("balance_override_date"), // YYYY-MM-DD; only income/expenses/transfers on or after this date accrue on top
   active: integer("active", { mode: "boolean" }).notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at").notNull(),

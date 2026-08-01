@@ -25,6 +25,8 @@ export async function seedDatabase() {
       owner TEXT NOT NULL,
       type TEXT NOT NULL,
       opening_balance REAL NOT NULL DEFAULT 0,
+      balance_override REAL,
+      balance_override_date TEXT,
       active INTEGER NOT NULL DEFAULT 1,
       sort_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL,
@@ -146,6 +148,8 @@ export async function seedDatabase() {
   const columnMigrations = [
     `ALTER TABLE expense_templates ADD COLUMN frequency TEXT NOT NULL DEFAULT 'monthly';`,
     `ALTER TABLE expense_templates ADD COLUMN anchor_date TEXT;`,
+    `ALTER TABLE accounts ADD COLUMN balance_override REAL;`,
+    `ALTER TABLE accounts ADD COLUMN balance_override_date TEXT;`,
   ];
   for (const query of columnMigrations) {
     try {

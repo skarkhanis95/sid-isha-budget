@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Wallet, AlertTriangle, Edit2, Trash2, CheckCircle2, X } from "lucide-react";
+import { Plus, Wallet, AlertTriangle, Edit2, Trash2, CheckCircle2, X, SlidersHorizontal } from "lucide-react";
 import { createAccountAction, updateAccountAction, deleteAccountAction } from "@/app/actions/finance-actions";
 
 export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) {
@@ -21,6 +21,13 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
   // Loading states
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Balance override
+  const [overrideAcc, setOverrideAcc] = useState<any | null>(null);
+  const [overrideAmount, setOverrideAmount] = useState("0");
+  const [overrideDate, setOverrideDate] = useState(new Date().toISOString().split("T")[0]);
+  const [isOverriding, setIsOverriding] = useState(false);
+  const [clearingOverrideId, setClearingOverrideId] = useState<string | null>(null);
 
   const handleOpenCreate = () => {
     setEditingAcc(null);
@@ -80,6 +87,40 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
     }
   };
 
+  const handleOpenOverride = (acc: any) => {
+    setOverrideAcc(acc);
+    setOverrideAmount(String(acc.currentBalance ?? 0));
+    setOverrideDate(new Date().toISOString().split("T")[0]);
+  };
+
+  const handleSubmitOverride = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!overrideAcc || overrideAmount === "" || isOverriding) return;
+
+    setIsOverriding(true);
+    try {
+      await updateAccountAction(overrideAcc.id, {
+        balanceOverride: parseFloat(overrideAmount),
+        balanceOverrideDate: overrideDate,
+      });
+      setOverrideAcc(null);
+    } finally {
+      setIsOverriding(false);
+    }
+  };
+
+  const handleClearOverride = async (acc: any) => {
+    if (clearingOverrideId === acc.id) return;
+    if (confirm(`Clear the manual balance override for ${acc.name}? It will go back to being calculated from opening balance + income + expenses + transfers.`)) {
+      setClearingOverrideId(acc.id);
+      try {
+        await updateAccountAction(acc.id, { balanceOverride: null, balanceOverrideDate: null });
+      } finally {
+        setClearingOverrideId(null);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -134,16 +175,16 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
             <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40 text-center">
               <div>
                 <div className="text-[11px] text-muted-foreground">Current</div>
-                <div className="font-bold text-sm text-foreground">₹{acc.currentBalance.toLocaleString()}</div>
+                <div className="font-bold text-sm text-foreground">₹{acc.currentBalance.toLocaleString("en-IN")}</div>
               </div>
               <div>
                 <div className="text-[11px] text-muted-foreground">Pending</div>
-                <div className="font-bold text-sm text-amber-400">₹{acc.pendingExpensesAmount.toLocaleString()}</div>
+                <div className="font-bold text-sm text-amber-400">₹{acc.pendingExpensesAmount.toLocaleString("en-IN")}</div>
               </div>
               <div>
                 <div className="text-[11px] text-muted-foreground">Projected</div>
                 <div className={`font-bold text-sm ${acc.hasShortfall ? "text-destructive" : "text-emerald-400"}`}>
-                  ₹{acc.projectedBalance.toLocaleString()}
+                  ₹{acc.projectedBalance.toLocaleString("en-IN")}
                 </div>
               </div>
             </div>
@@ -154,6 +195,29 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
                 <span>Shortfall detected! Account needs funding.</span>
               </div>
             )}
+
+            <div className="flex items-center justify-between pt-1 text-[11px]">
+              {acc.balanceOverrideDate ? (
+                <>
+                  <span className="text-muted-foreground">Overridden on {acc.balanceOverrideDate}</span>
+                  <button
+                    onClick={() => handleClearOverride(acc)}
+                    disabled={clearingOverrideId === acc.id}
+                    className="font-semibold text-destructive hover:underline disabled:opacity-50"
+                  >
+                    {clearingOverrideId === acc.id ? "Clearing..." : "Clear Override"}
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => handleOpenOverride(acc)}
+                  className="flex items-center gap-1 font-semibold text-primary hover:underline"
+                >
+                  <SlidersHorizontal className="w-3 h-3" />
+                  Override Balance
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -280,6 +344,62 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
                   className="px-5 py-2 text-xs font-semibold bg-destructive text-white hover:bg-destructive/90 rounded-xl shadow-md disabled:opacity-50"
                 >
                   {isDeleting ? "Deleting..." : "Reassign & Delete"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Override Balance Modal */}
+      {overrideAcc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl space-y-4">
+            <h3 className="font-bold text-base text-foreground">Override Balance: {overrideAcc.name}</h3>
+            <p className="text-xs text-muted-foreground">
+              Sets the account&apos;s balance directly as of the effective date, instead of tracking every income/expense.
+              Only transactions on or after this date will still add to the balance going forward.
+            </p>
+            <form onSubmit={handleSubmitOverride} className="space-y-3 text-sm">
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">New Balance (₹)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  autoFocus
+                  value={overrideAmount}
+                  onChange={(e) => setOverrideAmount(e.target.value)}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl font-bold text-base focus:ring-2 focus:ring-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Effective Date</label>
+                <input
+                  type="date"
+                  required
+                  value={overrideDate}
+                  onChange={(e) => setOverrideDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setOverrideAcc(null)}
+                  disabled={isOverriding}
+                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isOverriding}
+                  className="px-5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md disabled:opacity-50"
+                >
+                  {isOverriding ? "Saving..." : "Save Override"}
                 </button>
               </div>
             </form>

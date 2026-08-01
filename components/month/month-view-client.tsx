@@ -57,6 +57,7 @@ export function MonthViewClient({
   const [isSyncing, setIsSyncing] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table" | "timeline">("cards");
+  const [ownerFilter, setOwnerFilter] = useState("all");
 
   // Form states
   const [incDesc, setIncDesc] = useState("");
@@ -156,9 +157,18 @@ export function MonthViewClient({
     }
   };
 
+  // Owner filter (based on the owner of each expense's paying account)
+  const accountOwnerMap = new Map(accounts.map((a) => [a.id, a.owner]));
+  const uniqueOwners = Array.from(new Set(accounts.map((a) => a.owner))).sort();
+  const filteredExpensesList =
+    ownerFilter === "all"
+      ? expensesList
+      : expensesList.filter((exp) => accountOwnerMap.get(exp.paymentAccountId) === ownerFilter);
+  const filteredExpensesSubtotal = filteredExpensesList.reduce((sum, exp) => sum + exp.amount, 0);
+
   // Grouped date-wise expenses for Timeline View
   const groupedByDateMap = new Map<string, any[]>();
-  expensesList.forEach((exp) => {
+  filteredExpensesList.forEach((exp) => {
     const list = groupedByDateMap.get(exp.dueDate) || [];
     list.push(exp);
     groupedByDateMap.set(exp.dueDate, list);
@@ -297,7 +307,7 @@ export function MonthViewClient({
                 Income Entries
               </h3>
               <span className="font-bold text-sm text-emerald-400">
-                Total: ₹{incomeList.reduce((sum, i) => sum + i.amount, 0).toLocaleString()}
+                Total: ₹{incomeList.reduce((sum, i) => sum + i.amount, 0).toLocaleString("en-IN")}
               </span>
             </div>
 
@@ -316,7 +326,7 @@ export function MonthViewClient({
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-emerald-400">₹{inc.amount.toLocaleString()}</span>
+                        <span className="font-bold text-sm text-emerald-400">₹{inc.amount.toLocaleString("en-IN")}</span>
                         <button
                           onClick={() => handleDeleteIncome(inc.id)}
                           disabled={deletingIncomeId === inc.id}
@@ -334,13 +344,34 @@ export function MonthViewClient({
 
           {/* Expenses Section */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg text-foreground">Expenses ({expensesList.length})</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h3 className="font-bold text-lg text-foreground">
+                Expenses ({filteredExpensesList.length}
+                {ownerFilter !== "all" ? ` of ${expensesList.length}` : ""})
+              </h3>
+
+              <div className="flex items-center gap-3">
+                <select
+                  value={ownerFilter}
+                  onChange={(e) => setOwnerFilter(e.target.value)}
+                  className="px-3 py-2 bg-card border border-border rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                >
+                  <option value="all">All Owners</option>
+                  {uniqueOwners.map((owner) => (
+                    <option key={owner} value={owner}>
+                      {owner}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                  Subtotal: <span className="text-foreground font-bold">₹{filteredExpensesSubtotal.toLocaleString("en-IN")}</span>
+                </span>
+              </div>
             </div>
 
             {viewMode === "cards" && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {expensesList.map((exp) => (
+                {filteredExpensesList.map((exp) => (
                   <ExpenseCard
                     key={exp.id}
                     expense={exp}
@@ -383,7 +414,7 @@ export function MonthViewClient({
 
             {viewMode === "table" && (
               <ExpenseTable
-                expenses={expensesList}
+                expenses={filteredExpensesList}
                 onEdit={(e) => {
                   setSelectedExpense(e);
                   setIsExpenseSheetOpen(true);
