@@ -7,7 +7,19 @@ if (!process.env.JWT_SECRET) {
 }
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const PUBLIC_PATH_PREFIXES = ["/login", "/api/telegram/webhook", "/api/cron/notifications", "/_next", "/favicon.ico", "/manifest.json"];
+const PUBLIC_PATH_PREFIXES = [
+  "/login",
+  "/api/telegram/webhook",
+  "/api/cron/notifications",
+  "/_next",
+  "/favicon.ico",
+  "/favicon.svg",
+  "/favicon-96x96.png",
+  "/apple-touch-icon.png",
+  "/web-app-manifest-192x192.png",
+  "/web-app-manifest-512x512.png",
+  "/site.webmanifest",
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -43,7 +43,7 @@ export function CategoryPieChart({ data }: { data: CategoryData[] }) {
             layout="horizontal"
             verticalAlign="bottom"
             align="center"
-            wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }}
+            wrapperStyle={{ fontSize: "11px", paddingTop: "10px", color: "hsl(var(--muted-foreground))" }}
           />
         </PieChart>
       </ResponsiveContainer>

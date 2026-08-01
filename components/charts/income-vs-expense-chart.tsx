@@ -28,7 +28,7 @@ export function IncomeVsExpenseChart({ data }: { data: IncomeExpenseData[] }) {
             formatter={(value: number) => [`₹${value.toLocaleString()}`, ""]}
             contentStyle={{ backgroundColor: "#0f172a", borderRadius: "12px", border: "1px solid #1e293b", color: "#f8fafc" }}
           />
-          <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }} />
+          <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "10px", color: "hsl(var(--muted-foreground))" }} />
           <Bar dataKey="income" name="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
           <Bar dataKey="expenses" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
         </BarChart>
