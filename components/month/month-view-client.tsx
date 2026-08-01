@@ -68,6 +68,11 @@ export function MonthViewClient({
   const [trTo, setTrTo] = useState(accounts[1]?.id || accounts[0]?.id || "");
   const [trAmount, setTrAmount] = useState("");
 
+  // Additional loading states
+  const [isSavingIncome, setIsSavingIncome] = useState(false);
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [deletingIncomeId, setDeletingIncomeId] = useState<string | null>(null);
+
   const formattedTitle = formatMonthKey(monthKey);
 
   const handleNavigateMonth = (delta: number) => {
@@ -100,31 +105,55 @@ export function MonthViewClient({
 
   const handleAddIncome = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!monthId || !incDesc || !incAmount || !incAccount) return;
-    await addIncomeAction({
-      monthId,
-      description: incDesc,
-      amount: parseFloat(incAmount),
-      accountId: incAccount,
-      receivedDate: incDate,
-    });
-    setIncDesc("");
-    setIncAmount("");
-    setIsAddIncomeOpen(false);
+    if (!monthId || !incDesc || !incAmount || !incAccount || isSavingIncome) return;
+
+    setIsSavingIncome(true);
+    try {
+      await addIncomeAction({
+        monthId,
+        description: incDesc,
+        amount: parseFloat(incAmount),
+        accountId: incAccount,
+        receivedDate: incDate,
+      });
+      setIncDesc("");
+      setIncAmount("");
+      setIsAddIncomeOpen(false);
+    } finally {
+      setIsSavingIncome(false);
+    }
+  };
+
+  const handleDeleteIncome = async (id: string) => {
+    if (deletingIncomeId === id) return;
+    if (confirm("Delete income entry?")) {
+      setDeletingIncomeId(id);
+      try {
+        await deleteIncomeAction(id);
+      } finally {
+        setDeletingIncomeId(null);
+      }
+    }
   };
 
   const handleRecordTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!monthId || !trFrom || !trTo || !trAmount || trFrom === trTo) return;
-    await recordTransferAction({
-      monthId,
-      fromAccountId: trFrom,
-      toAccountId: trTo,
-      amount: parseFloat(trAmount),
-      transferDate: new Date().toISOString().split("T")[0],
-    });
-    setTrAmount("");
-    setIsTransferOpen(false);
+    if (!monthId || !trFrom || !trTo || !trAmount || trFrom === trTo || isTransferring) return;
+
+    setIsTransferring(true);
+    try {
+      await recordTransferAction({
+        monthId,
+        fromAccountId: trFrom,
+        toAccountId: trTo,
+        amount: parseFloat(trAmount),
+        transferDate: new Date().toISOString().split("T")[0],
+      });
+      setTrAmount("");
+      setIsTransferOpen(false);
+    } finally {
+      setIsTransferring(false);
+    }
   };
 
   // Grouped date-wise expenses for Timeline View
@@ -289,12 +318,9 @@ export function MonthViewClient({
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-emerald-400">₹{inc.amount.toLocaleString()}</span>
                         <button
-                          onClick={async () => {
-                            if (confirm("Delete income entry?")) {
-                              await deleteIncomeAction(inc.id);
-                            }
-                          }}
-                          className="p-1 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteIncome(inc.id)}
+                          disabled={deletingIncomeId === inc.id}
+                          className="p-1 text-muted-foreground hover:text-destructive disabled:opacity-50"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -429,15 +455,17 @@ export function MonthViewClient({
                 <button
                   type="button"
                   onClick={() => setIsAddIncomeOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl"
+                  disabled={isSavingIncome}
+                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 rounded-xl shadow-md"
+                  disabled={isSavingIncome}
+                  className="px-5 py-2 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 rounded-xl shadow-md disabled:opacity-50"
                 >
-                  Save Income
+                  {isSavingIncome ? "Saving Income..." : "Save Income"}
                 </button>
               </div>
             </form>
@@ -456,7 +484,8 @@ export function MonthViewClient({
                 <select
                   value={trFrom}
                   onChange={(e) => setTrFrom(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+                  disabled={isTransferring}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground disabled:opacity-50"
                 >
                   {accounts.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -471,7 +500,8 @@ export function MonthViewClient({
                 <select
                   value={trTo}
                   onChange={(e) => setTrTo(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+                  disabled={isTransferring}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground disabled:opacity-50"
                 >
                   {accounts.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -491,7 +521,8 @@ export function MonthViewClient({
                   placeholder="0.00"
                   value={trAmount}
                   onChange={(e) => setTrAmount(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl font-bold text-base focus:ring-2 focus:ring-primary focus:outline-none"
+                  disabled={isTransferring}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl font-bold text-base focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-50"
                 />
               </div>
 
@@ -499,15 +530,17 @@ export function MonthViewClient({
                 <button
                   type="button"
                   onClick={() => setIsTransferOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl"
+                  disabled={isTransferring}
+                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 rounded-xl shadow-md"
+                  disabled={isTransferring}
+                  className="px-5 py-2 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 rounded-xl shadow-md disabled:opacity-50"
                 >
-                  Execute Transfer
+                  {isTransferring ? "Executing..." : "Execute Transfer"}
                 </button>
               </div>
             </form>

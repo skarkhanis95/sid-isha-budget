@@ -43,31 +43,47 @@ export function SettingsClient({
   const [linkCode, setLinkCode] = useState<string | null>(telegramLink?.startCode || null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "SidIshaBudgetBot";
 
   const handleUpdateSettings = async (newLead?: number, newInApp?: boolean, newTg?: boolean) => {
-    const payload = {
-      leadTimeDays: newLead !== undefined ? newLead : leadTimeDays,
-      inAppEnabled: newInApp !== undefined ? newInApp : inAppEnabled,
-      telegramEnabled: newTg !== undefined ? newTg : telegramEnabled,
-    };
-    await updateNotificationSettingsAction(payload);
+    setIsUpdatingSettings(true);
+    try {
+      const payload = {
+        leadTimeDays: newLead !== undefined ? newLead : leadTimeDays,
+        inAppEnabled: newInApp !== undefined ? newInApp : inAppEnabled,
+        telegramEnabled: newTg !== undefined ? newTg : telegramEnabled,
+      };
+      await updateNotificationSettingsAction(payload);
+    } finally {
+      setIsUpdatingSettings(false);
+    }
   };
 
   const handleGenerateLink = async () => {
     setIsGenerating(true);
-    const res = await generateTelegramLinkCodeAction();
-    setLinkCode(res.code);
-    setIsGenerating(false);
+    try {
+      const res = await generateTelegramLinkCodeAction();
+      setLinkCode(res.code);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleDisconnect = async () => {
+    if (isDisconnecting) return;
     if (confirm("Disconnect Telegram notifications?")) {
-      await disconnectTelegramAction();
-      setTelegramEnabled(false);
-      setLinkCode(null);
+      setIsDisconnecting(true);
+      try {
+        await disconnectTelegramAction();
+        setTelegramEnabled(false);
+        setLinkCode(null);
+      } finally {
+        setIsDisconnecting(false);
+      }
     }
   };
 
@@ -174,12 +190,13 @@ export function SettingsClient({
             <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Alert Lead Window</label>
             <select
               value={leadTimeDays}
+              disabled={isUpdatingSettings}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
                 setLeadTimeDays(val);
                 handleUpdateSettings(val);
               }}
-              className="w-full sm:w-64 px-3.5 py-2.5 bg-background border border-border rounded-xl text-xs font-semibold focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+              className="w-full sm:w-64 px-3.5 py-2.5 bg-background border border-border rounded-xl text-xs font-semibold focus:ring-2 focus:ring-primary focus:outline-none text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value={0}>On Due Date (Same day)</option>
               <option value={1}>1 Day Before Due Date (Default)</option>
@@ -197,11 +214,12 @@ export function SettingsClient({
             <input
               type="checkbox"
               checked={inAppEnabled}
+              disabled={isUpdatingSettings}
               onChange={(e) => {
                 setInAppEnabled(e.target.checked);
                 handleUpdateSettings(undefined, e.target.checked);
               }}
-              className="w-5 h-5 accent-primary rounded cursor-pointer"
+              className="w-5 h-5 accent-primary rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -232,11 +250,12 @@ export function SettingsClient({
                   <input
                     type="checkbox"
                     checked={telegramEnabled}
+                    disabled={isUpdatingSettings}
                     onChange={(e) => {
                       setTelegramEnabled(e.target.checked);
                       handleUpdateSettings(undefined, undefined, e.target.checked);
                     }}
-                    className="w-5 h-5 accent-primary rounded cursor-pointer"
+                    className="w-5 h-5 accent-primary rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -273,9 +292,10 @@ export function SettingsClient({
                 <div className="pt-2">
                   <button
                     onClick={handleDisconnect}
-                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-destructive bg-destructive/10 hover:bg-destructive/20 border border-destructive/20"
+                    disabled={isDisconnecting}
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-destructive bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Disconnect Telegram
+                    {isDisconnecting ? "Disconnecting..." : "Disconnect Telegram"}
                   </button>
                 </div>
               </div>

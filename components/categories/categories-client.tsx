@@ -16,6 +16,10 @@ export function CategoriesClient({ initialCategories }: { initialCategories: any
   const [color, setColor] = useState("#3b82f6");
   const [icon, setIcon] = useState("Tag");
 
+  // Loading states
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleOpenCreate = () => {
     setEditingCat(null);
     setName("");
@@ -34,21 +38,32 @@ export function CategoriesClient({ initialCategories }: { initialCategories: any
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name) return;
+    if (!name || isSaving) return;
 
-    if (editingCat) {
-      await updateCategoryAction(editingCat.id, { name, color, icon });
-    } else {
-      await createCategoryAction({ name, color, icon });
+    setIsSaving(true);
+    try {
+      if (editingCat) {
+        await updateCategoryAction(editingCat.id, { name, color, icon });
+      } else {
+        await createCategoryAction({ name, color, icon });
+      }
+      setIsAddOpen(false);
+    } finally {
+      setIsSaving(false);
     }
-    setIsAddOpen(false);
   };
 
   const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!deleteCat) return;
-    await deleteCategoryAction(deleteCat.id, reassignCatId);
-    setDeleteCat(null);
+    if (!deleteCat || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteCategoryAction(deleteCat.id, reassignCatId);
+      setDeleteCat(null);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -142,15 +157,17 @@ export function CategoriesClient({ initialCategories }: { initialCategories: any
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl"
+                  disabled={isSaving}
+                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md"
+                  disabled={isSaving}
+                  className="px-5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md disabled:opacity-50"
                 >
-                  Save Category
+                  {isSaving ? "Saving..." : "Save Category"}
                 </button>
               </div>
             </form>
@@ -172,7 +189,8 @@ export function CategoriesClient({ initialCategories }: { initialCategories: any
                 <select
                   value={reassignCatId}
                   onChange={(e) => setReassignCatId(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+                  disabled={isDeleting}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground disabled:opacity-50"
                 >
                   {initialCategories
                     .filter((c) => c.id !== deleteCat.id)
@@ -188,15 +206,17 @@ export function CategoriesClient({ initialCategories }: { initialCategories: any
                 <button
                   type="button"
                   onClick={() => setDeleteCat(null)}
-                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl"
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold bg-destructive text-white hover:bg-destructive/90 rounded-xl shadow-md"
+                  disabled={isDeleting}
+                  className="px-5 py-2 text-xs font-semibold bg-destructive text-white hover:bg-destructive/90 rounded-xl shadow-md disabled:opacity-50"
                 >
-                  Reassign & Delete
+                  {isDeleting ? "Deleting..." : "Reassign & Delete"}
                 </button>
               </div>
             </form>

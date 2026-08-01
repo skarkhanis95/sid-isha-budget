@@ -12,8 +12,33 @@ interface ExpenseTableProps {
 export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sortField, setSortField] = useState("dueDate");
   const [sortAsc, setSortAsc] = useState(true);
+
+  const handleToggleStatus = async (exp: any) => {
+    if (updatingId === exp.id) return;
+    setUpdatingId(exp.id);
+    try {
+      const newStatus = exp.status === "paid" ? "pending" : "paid";
+      await markExpenseStatusAction(exp.id, newStatus);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteExpense = async (exp: any) => {
+    if (deletingId === exp.id) return;
+    if (confirm(`Delete ${exp.name}?`)) {
+      setDeletingId(exp.id);
+      try {
+        await deleteExpenseAction(exp.id);
+      } finally {
+        setDeletingId(null);
+      }
+    }
+  };
 
   const filtered = expenses
     .filter((exp) => {
@@ -124,11 +149,9 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                   <td className="py-3 px-4 text-muted-foreground">{exp.accountName || "Account"}</td>
                   <td className="py-3 px-4">
                     <button
-                      onClick={async () => {
-                        const newStatus = exp.status === "paid" ? "pending" : "paid";
-                        await markExpenseStatusAction(exp.id, newStatus);
-                      }}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${
+                      onClick={() => handleToggleStatus(exp)}
+                      disabled={updatingId === exp.id}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all disabled:opacity-50 ${
                         exp.status === "paid"
                           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                           : exp.status === "skipped"
@@ -136,7 +159,9 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                           : "bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20"
                       }`}
                     >
-                      {exp.status === "paid" ? (
+                      {updatingId === exp.id ? (
+                        "Updating..."
+                      ) : exp.status === "paid" ? (
                         <>
                           <CheckCircle2 className="w-3 h-3" /> Paid
                         </>
@@ -161,12 +186,9 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={async () => {
-                          if (confirm(`Delete ${exp.name}?`)) {
-                            await deleteExpenseAction(exp.id);
-                          }
-                        }}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteExpense(exp)}
+                        disabled={deletingId === exp.id}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
                         aria-label="Delete"
                       >
                         <Trash2 className="w-4 h-4" />

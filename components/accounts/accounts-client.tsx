@@ -18,6 +18,10 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
   const [type, setType] = useState("bank");
   const [openingBalance, setOpeningBalance] = useState("0");
 
+  // Loading states
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleOpenCreate = () => {
     setEditingAcc(null);
     setName("");
@@ -38,31 +42,42 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name) return;
+    if (!name || isSaving) return;
 
-    if (editingAcc) {
-      await updateAccountAction(editingAcc.id, {
-        name,
-        owner,
-        type,
-        openingBalance: parseFloat(openingBalance),
-      });
-    } else {
-      await createAccountAction({
-        name,
-        owner,
-        type,
-        openingBalance: parseFloat(openingBalance),
-      });
+    setIsSaving(true);
+    try {
+      if (editingAcc) {
+        await updateAccountAction(editingAcc.id, {
+          name,
+          owner,
+          type,
+          openingBalance: parseFloat(openingBalance),
+        });
+      } else {
+        await createAccountAction({
+          name,
+          owner,
+          type,
+          openingBalance: parseFloat(openingBalance),
+        });
+      }
+      setIsAddOpen(false);
+    } finally {
+      setIsSaving(false);
     }
-    setIsAddOpen(false);
   };
 
   const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!deleteAcc) return;
-    await deleteAccountAction(deleteAcc.id, reassignAccId);
-    setDeleteAcc(null);
+    if (!deleteAcc || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteAccountAction(deleteAcc.id, reassignAccId);
+      setDeleteAcc(null);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -202,15 +217,17 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl"
+                  disabled={isSaving}
+                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md"
+                  disabled={isSaving}
+                  className="px-5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md disabled:opacity-50"
                 >
-                  Save Account
+                  {isSaving ? "Saving..." : "Save Account"}
                 </button>
               </div>
             </form>
@@ -232,7 +249,8 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
                 <select
                   value={reassignAccId}
                   onChange={(e) => setReassignAccId(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+                  disabled={isDeleting}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground disabled:opacity-50"
                 >
                   {initialAccounts
                     .filter((a) => a.id !== deleteAcc.id)
@@ -248,15 +266,17 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
                 <button
                   type="button"
                   onClick={() => setDeleteAcc(null)}
-                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl"
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold bg-destructive text-white hover:bg-destructive/90 rounded-xl shadow-md"
+                  disabled={isDeleting}
+                  className="px-5 py-2 text-xs font-semibold bg-destructive text-white hover:bg-destructive/90 rounded-xl shadow-md disabled:opacity-50"
                 >
-                  Reassign & Delete
+                  {isDeleting ? "Deleting..." : "Reassign & Delete"}
                 </button>
               </div>
             </form>

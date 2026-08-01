@@ -24,6 +24,11 @@ export function TemplatesClient({
   const [dueDay, setDueDay] = useState<string>("1");
   const [notes, setNotes] = useState("");
 
+  // Loading states
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
   const handleOpenCreate = () => {
     setEditingTmpl(null);
     setName("");
@@ -50,28 +55,51 @@ export function TemplatesClient({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !defaultAmount || !categoryId || !paymentAccountId) return;
+    if (!name || !defaultAmount || !categoryId || !paymentAccountId || isSaving) return;
 
-    const payload = {
-      name,
-      categoryId,
-      defaultAmount: parseFloat(defaultAmount),
-      paymentAccountId,
-      fixed,
-      dueDay: fixed && dueDay ? parseInt(dueDay, 10) : null,
-      notes,
-    };
+    setIsSaving(true);
+    try {
+      const payload = {
+        name,
+        categoryId,
+        defaultAmount: parseFloat(defaultAmount),
+        paymentAccountId,
+        fixed,
+        dueDay: fixed && dueDay ? parseInt(dueDay, 10) : null,
+        notes,
+      };
 
-    if (editingTmpl) {
-      await updateTemplateAction(editingTmpl.id, payload);
-    } else {
-      await createTemplateAction(payload);
+      if (editingTmpl) {
+        await updateTemplateAction(editingTmpl.id, payload);
+      } else {
+        await createTemplateAction(payload);
+      }
+      setIsAddOpen(false);
+    } finally {
+      setIsSaving(false);
     }
-    setIsAddOpen(false);
   };
 
   const toggleEnabled = async (tmpl: any) => {
-    await updateTemplateAction(tmpl.id, { enabled: !tmpl.enabled });
+    if (togglingId === tmpl.id) return;
+    setTogglingId(tmpl.id);
+    try {
+      await updateTemplateAction(tmpl.id, { enabled: !tmpl.enabled });
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleDeleteTemplate = async (tmpl: any) => {
+    if (deletingId === tmpl.id) return;
+    if (confirm(`Delete template ${tmpl.name}?`)) {
+      setDeletingId(tmpl.id);
+      try {
+        await deleteTemplateAction(tmpl.id);
+      } finally {
+        setDeletingId(null);
+      }
+    }
   };
 
   return (
@@ -127,12 +155,9 @@ export function TemplatesClient({
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={async () => {
-                      if (confirm(`Delete template ${tmpl.name}?`)) {
-                        await deleteTemplateAction(tmpl.id);
-                      }
-                    }}
-                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDeleteTemplate(tmpl)}
+                    disabled={deletingId === tmpl.id}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -152,13 +177,14 @@ export function TemplatesClient({
 
                 <button
                   onClick={() => toggleEnabled(tmpl)}
-                  className={`px-3 py-1.5 rounded-xl font-semibold text-xs transition-colors ${
+                  disabled={togglingId === tmpl.id}
+                  className={`px-3 py-1.5 rounded-xl font-semibold text-xs transition-colors disabled:opacity-50 ${
                     tmpl.enabled
                       ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                       : "bg-secondary text-secondary-foreground"
                   }`}
                 >
-                  {tmpl.enabled ? "Active" : "Disabled"}
+                  {togglingId === tmpl.id ? "Updating..." : tmpl.enabled ? "Active" : "Disabled"}
                 </button>
               </div>
             </div>
@@ -272,15 +298,17 @@ export function TemplatesClient({
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl"
+                  disabled={isSaving}
+                  className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent rounded-xl disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md"
+                  disabled={isSaving}
+                  className="px-5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md disabled:opacity-50"
                 >
-                  Save Template
+                  {isSaving ? "Saving..." : "Save Template"}
                 </button>
               </div>
             </form>

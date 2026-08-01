@@ -240,10 +240,11 @@ export function ExpenseSheet({
               <button
                 type="button"
                 onClick={handleDelete}
-                className="px-4 py-2.5 rounded-xl font-semibold text-xs text-destructive hover:bg-destructive/10 border border-destructive/20 flex items-center gap-1.5"
+                disabled={isSaving}
+                className="px-4 py-2.5 rounded-xl font-semibold text-xs text-destructive hover:bg-destructive/10 border border-destructive/20 flex items-center gap-1.5 disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete
+                {isSaving ? "Deleting..." : "Delete"}
               </button>
             ) : <div />}
 
@@ -251,14 +252,15 @@ export function ExpenseSheet({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl font-semibold text-xs text-muted-foreground hover:bg-accent"
+                disabled={isSaving}
+                className="px-4 py-2.5 rounded-xl font-semibold text-xs text-muted-foreground hover:bg-accent disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-6 py-2.5 rounded-xl font-semibold text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 flex items-center gap-1.5"
+                className="px-6 py-2.5 rounded-xl font-semibold text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 flex items-center gap-1.5 disabled:opacity-50"
               >
                 <Check className="w-4 h-4" />
                 {isSaving ? "Saving..." : "Save Expense"}

@@ -5,6 +5,7 @@ import { eq, desc } from "drizzle-orm";
 import { generateTransferRecommendations } from "@/lib/services/transfer-planner";
 import { recordTransferAction } from "@/app/actions/finance-actions";
 import { ArrowRightLeft, CheckCircle2, Calendar } from "lucide-react";
+import { SubmitButton } from "@/components/common/submit-button";
 
 export const revalidate = 0;
 
@@ -69,12 +70,12 @@ export default async function TransfersPage() {
                       }
                     }}
                   >
-                    <button
-                      type="submit"
-                      className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs transition-colors shadow-md"
+                    <SubmitButton
+                      className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      pendingChildren="Executing..."
                     >
                       Execute Transfer
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
 

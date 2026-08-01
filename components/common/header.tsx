@@ -4,6 +4,7 @@ import React from "react";
 import { NotificationBell } from "./notification-bell";
 import { User, LogOut } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth-actions";
+import { SubmitButton } from "@/components/common/submit-button";
 
 export function Header({
   displayName,
@@ -40,13 +41,12 @@ export function Header({
             </div>
 
             <form action={logoutAction} className="md:hidden">
-              <button
-                type="submit"
+              <SubmitButton
                 aria-label="Logout"
-                className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                className="p-1.5 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
               >
                 <LogOut className="w-4 h-4" />
-              </button>
+              </SubmitButton>
             </form>
           </div>
         )}

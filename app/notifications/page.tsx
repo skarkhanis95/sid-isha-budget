@@ -5,6 +5,7 @@ import { verifySession } from "@/lib/auth/session";
 import { eq, desc } from "drizzle-orm";
 import { Bell, Trash2, Calendar } from "lucide-react";
 import { deleteNotificationLogAction } from "@/app/actions/notification-actions";
+import { SubmitButton } from "@/components/common/submit-button";
 
 export const revalidate = 0;
 
@@ -52,13 +53,12 @@ export default async function NotificationsPage() {
                     await deleteNotificationLogAction(log.id);
                   }}
                 >
-                  <button
-                    type="submit"
+                  <SubmitButton
                     aria-label="Delete log"
-                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </SubmitButton>
                 </form>
               </div>
             ))}

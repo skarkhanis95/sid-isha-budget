@@ -17,6 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth-actions";
+import { SubmitButton } from "@/components/common/submit-button";
 
 const mainNavItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -107,13 +108,18 @@ export function Navigation({ userDisplayName }: { userDisplayName?: string }) {
             </div>
           )}
           <form action={logoutAction}>
-            <button
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-medium text-sm text-destructive hover:bg-destructive/10 transition-colors"
+            <SubmitButton
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-medium text-sm text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              pendingChildren={
+                <>
+                  <LogOut className="w-4 h-4" />
+                  Logging out...
+                </>
+              }
             >
               <LogOut className="w-4 h-4" />
               Logout
-            </button>
+            </SubmitButton>
           </form>
         </div>
       </aside>

@@ -25,6 +25,7 @@ import { IncomeVsExpenseChart } from "@/components/charts/income-vs-expense-char
 import { AccountBalanceBarChart } from "@/components/charts/account-balance-bar-chart";
 import Link from "next/link";
 import { recordTransferAction, startMonthAction } from "@/app/actions/finance-actions";
+import { SubmitButton } from "@/components/common/submit-button";
 
 export const revalidate = 0; // Dynamic server page
 
@@ -71,13 +72,18 @@ export default async function DashboardPage() {
               await startMonthAction(currentMonthKey);
             }}
           >
-            <button
-              type="submit"
-              className="px-6 py-3 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all w-full flex items-center justify-center gap-2"
+            <SubmitButton
+              className="px-6 py-3 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              pendingChildren={
+                <>
+                  <PlayCircle className="w-4 h-4" />
+                  Starting Month...
+                </>
+              }
             >
               <PlayCircle className="w-4 h-4" />
               Start {formattedCurrentTitle} Now
-            </button>
+            </SubmitButton>
           </form>
         </div>
 
@@ -354,12 +360,12 @@ export default async function DashboardPage() {
                         }
                       }}
                     >
-                      <button
-                        type="submit"
-                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-[11px] transition-colors"
+                      <SubmitButton
+                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-[11px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        pendingChildren="Recording..."
                       >
                         Record Transfer
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                   <div className="text-foreground">
