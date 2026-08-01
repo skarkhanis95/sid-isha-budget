@@ -293,6 +293,8 @@ export async function createTemplateAction(data: {
   paymentAccountId: string;
   fixed: boolean;
   dueDay?: number | null;
+  frequency?: "monthly" | "quarterly" | "half_yearly" | "yearly" | "one_time";
+  anchorDate?: string | null;
   notes?: string;
 }) {
   await requireSession();
@@ -307,6 +309,8 @@ export async function createTemplateAction(data: {
     paymentAccountId: data.paymentAccountId,
     fixed: data.fixed,
     dueDay: data.dueDay || null,
+    frequency: data.frequency || "monthly",
+    anchorDate: data.anchorDate || null,
     enabled: true,
     notes: data.notes || null,
     sortOrder: 10,

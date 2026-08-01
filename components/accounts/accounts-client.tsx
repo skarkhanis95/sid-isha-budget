@@ -179,13 +179,16 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: any[] }) 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1">Owner</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={owner}
                     onChange={(e) => setOwner(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none"
-                  />
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+                  >
+                    <option value="Siddharth">Siddharth</option>
+                    <option value="Isha">Isha</option>
+                    <option value="Joint">Joint</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1">Type</label>

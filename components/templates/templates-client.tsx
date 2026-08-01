@@ -1,8 +1,32 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Layers, Edit2, Trash2, Calendar, Tag, Wallet } from "lucide-react";
+import { Plus, Layers, Edit2, Trash2, Calendar, Tag, Wallet, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { createTemplateAction, updateTemplateAction, deleteTemplateAction } from "@/app/actions/finance-actions";
+
+const FREQUENCY_LABELS: Record<string, string> = {
+  monthly: "Monthly",
+  quarterly: "Quarterly",
+  half_yearly: "Half-Yearly",
+  yearly: "Yearly",
+  one_time: "One-Time",
+};
+
+function formatDueInfo(tmpl: any): string | null {
+  if (!tmpl.fixed) return null;
+  const frequency = tmpl.frequency || "monthly";
+  if (frequency === "monthly") {
+    return tmpl.dueDay ? `Due on day ${tmpl.dueDay} of every month` : null;
+  }
+  if (!tmpl.anchorDate) return null;
+  const dateLabel = new Date(tmpl.anchorDate + "T00:00:00").toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  if (frequency === "one_time") return `One-time on ${dateLabel}`;
+  return `${FREQUENCY_LABELS[frequency] || frequency} from ${dateLabel}`;
+}
 
 export function TemplatesClient({
   initialTemplates,
@@ -22,12 +46,15 @@ export function TemplatesClient({
   const [paymentAccountId, setPaymentAccountId] = useState(accounts[0]?.id || "");
   const [fixed, setFixed] = useState(true);
   const [dueDay, setDueDay] = useState<string>("1");
+  const [frequency, setFrequency] = useState<string>("monthly");
+  const [anchorDate, setAnchorDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
 
   // Loading states
   const [isSaving, setIsSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   const handleOpenCreate = () => {
     setEditingTmpl(null);
@@ -37,6 +64,8 @@ export function TemplatesClient({
     setPaymentAccountId(accounts[0]?.id || "");
     setFixed(true);
     setDueDay("1");
+    setFrequency("monthly");
+    setAnchorDate(new Date().toISOString().split("T")[0]);
     setNotes("");
     setIsAddOpen(true);
   };
@@ -49,6 +78,8 @@ export function TemplatesClient({
     setPaymentAccountId(tmpl.paymentAccountId);
     setFixed(Boolean(tmpl.fixed));
     setDueDay(tmpl.dueDay ? String(tmpl.dueDay) : "1");
+    setFrequency(tmpl.frequency || "monthly");
+    setAnchorDate(tmpl.anchorDate || new Date().toISOString().split("T")[0]);
     setNotes(tmpl.notes || "");
     setIsAddOpen(true);
   };
@@ -56,6 +87,7 @@ export function TemplatesClient({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !defaultAmount || !categoryId || !paymentAccountId || isSaving) return;
+    if (fixed && frequency !== "monthly" && !anchorDate) return;
 
     setIsSaving(true);
     try {
@@ -65,7 +97,9 @@ export function TemplatesClient({
         defaultAmount: parseFloat(defaultAmount),
         paymentAccountId,
         fixed,
-        dueDay: fixed && dueDay ? parseInt(dueDay, 10) : null,
+        dueDay: fixed && frequency === "monthly" && dueDay ? parseInt(dueDay, 10) : null,
+        frequency: fixed ? (frequency as any) : "monthly",
+        anchorDate: fixed && frequency !== "monthly" ? anchorDate : null,
         notes,
       };
 
@@ -104,20 +138,44 @@ export function TemplatesClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Expense Templates</h1>
           <p className="text-xs text-muted-foreground">Manage recurring expense templates & due-day schedules</p>
         </div>
-        <button
-          onClick={handleOpenCreate}
-          className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-xl shadow-md flex items-center gap-1.5 hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4" />
-          Add Template
-        </button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1 bg-background p-1 rounded-2xl border border-border">
+            <button
+              onClick={() => setViewMode("cards")}
+              aria-label="Card view"
+              className={`p-1.5 rounded-xl transition-all ${
+                viewMode === "cards" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              aria-label="Table view"
+              className={`p-1.5 rounded-xl transition-all ${
+                viewMode === "table" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <TableIcon className="w-4 h-4" />
+            </button>
+          </div>
+          <button
+            onClick={handleOpenCreate}
+            className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-xl shadow-md flex items-center gap-1.5 hover:bg-primary/90 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            Add Template
+          </button>
+        </div>
       </div>
 
+      {viewMode === "cards" ? (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {initialTemplates.map((tmpl) => {
           const catName = categories.find((c) => c.id === tmpl.categoryId)?.name || "Category";
@@ -136,7 +194,7 @@ export function TemplatesClient({
                     <h3 className="font-bold text-base text-foreground">{tmpl.name}</h3>
                     {tmpl.fixed && (
                       <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">
-                        Fixed
+                        {FREQUENCY_LABELS[tmpl.frequency || "monthly"] || "Fixed"}
                       </span>
                     )}
                   </div>
@@ -167,10 +225,10 @@ export function TemplatesClient({
               <div className="flex items-center justify-between pt-3 border-t border-border/40 text-xs">
                 <div>
                   <div className="font-extrabold text-base text-foreground">₹{tmpl.defaultAmount.toLocaleString()}</div>
-                  {tmpl.fixed && tmpl.dueDay && (
+                  {formatDueInfo(tmpl) && (
                     <div className="text-[11px] text-primary flex items-center gap-1 mt-0.5">
                       <Calendar className="w-3 h-3" />
-                      Due on day {tmpl.dueDay} of every month
+                      {formatDueInfo(tmpl)}
                     </div>
                   )}
                 </div>
@@ -191,6 +249,87 @@ export function TemplatesClient({
           );
         })}
       </div>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-border bg-card/60">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-muted/40 text-muted-foreground font-semibold border-b border-border">
+              <tr>
+                <th className="py-3.5 px-4">Template Name</th>
+                <th className="py-3.5 px-4">Category</th>
+                <th className="py-3.5 px-4">Account</th>
+                <th className="py-3.5 px-4">Amount</th>
+                <th className="py-3.5 px-4">Schedule</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {initialTemplates.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                    No templates yet.
+                  </td>
+                </tr>
+              ) : (
+                initialTemplates.map((tmpl) => {
+                  const catName = categories.find((c) => c.id === tmpl.categoryId)?.name || "Category";
+                  const accName = accounts.find((a) => a.id === tmpl.paymentAccountId)?.name || "Account";
+                  return (
+                    <tr key={tmpl.id} className="hover:bg-accent/30 transition-colors">
+                      <td className="py-3 px-4 font-medium text-foreground">
+                        <div className="flex items-center gap-2">
+                          <span>{tmpl.name}</span>
+                          {tmpl.fixed && (
+                            <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-medium">
+                              {FREQUENCY_LABELS[tmpl.frequency || "monthly"] || "Fixed"}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">{catName}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{accName}</td>
+                      <td className="py-3 px-4 font-bold text-foreground">₹{tmpl.defaultAmount.toLocaleString()}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{formatDueInfo(tmpl) || "-"}</td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => toggleEnabled(tmpl)}
+                          disabled={togglingId === tmpl.id}
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors disabled:opacity-50 ${
+                            tmpl.enabled
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              : "bg-secondary text-secondary-foreground"
+                          }`}
+                        >
+                          {togglingId === tmpl.id ? "Updating..." : tmpl.enabled ? "Active" : "Disabled"}
+                        </button>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleOpenEdit(tmpl)}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
+                            aria-label="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTemplate(tmpl)}
+                            disabled={deletingId === tmpl.id}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Add / Edit Modal */}
       {isAddOpen && (
@@ -268,6 +407,23 @@ export function TemplatesClient({
 
               {fixed && (
                 <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Frequency</label>
+                  <select
+                    value={frequency}
+                    onChange={(e) => setFrequency(e.target.value)}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly (every 3 months)</option>
+                    <option value="half_yearly">Half-Yearly (every 6 months)</option>
+                    <option value="yearly">Yearly (every 12 months)</option>
+                    <option value="one_time">One-Time</option>
+                  </select>
+                </div>
+              )}
+
+              {fixed && frequency === "monthly" && (
+                <div>
                   <label className="block text-xs text-muted-foreground mb-1">Relative Due Day of Month (1–31)</label>
                   <select
                     value={dueDay}
@@ -281,6 +437,28 @@ export function TemplatesClient({
                       </option>
                     ))}
                   </select>
+                </div>
+              )}
+
+              {fixed && frequency !== "monthly" && (
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">
+                    {frequency === "one_time" ? "Due Date" : "First Due Date (recurs from here)"}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={anchorDate}
+                    onChange={(e) => setAnchorDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary focus:outline-none"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {frequency === "one_time"
+                      ? "This expense will appear only in the month of this date."
+                      : "The expense will appear in this month and then repeat every " +
+                        (frequency === "quarterly" ? "3" : frequency === "half_yearly" ? "6" : "12") +
+                        " months on the same day, when you Start Month / Sync Templates."}
+                  </p>
                 </div>
               )}
 

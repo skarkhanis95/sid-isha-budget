@@ -38,7 +38,9 @@ export const expenseTemplates = sqliteTable("expense_templates", {
   defaultAmount: real("default_amount").notNull().default(0),
   paymentAccountId: text("payment_account_id").notNull(),
   fixed: integer("fixed", { mode: "boolean" }).notNull().default(false),
-  dueDay: integer("due_day"), // 1-31, relative day of month
+  dueDay: integer("due_day"), // 1-31, relative day of month (used when frequency = 'monthly')
+  frequency: text("frequency").notNull().default("monthly"), // 'monthly' | 'quarterly' | 'half_yearly' | 'yearly' | 'one_time'
+  anchorDate: text("anchor_date"), // YYYY-MM-DD, used when frequency != 'monthly'
   enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
   notes: text("notes"),
   sortOrder: integer("sort_order").notNull().default(0),

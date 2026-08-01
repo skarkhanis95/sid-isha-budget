@@ -48,6 +48,8 @@ export async function seedDatabase() {
       payment_account_id TEXT NOT NULL,
       fixed INTEGER NOT NULL DEFAULT 0,
       due_day INTEGER,
+      frequency TEXT NOT NULL DEFAULT 'monthly',
+      anchor_date TEXT,
       enabled INTEGER NOT NULL DEFAULT 1,
       notes TEXT,
       sort_order INTEGER NOT NULL DEFAULT 0,
@@ -137,6 +139,23 @@ export async function seedDatabase() {
 
   for (const query of tables) {
     await db.run(query);
+  }
+
+  // 1b. Idempotent migrations for columns added after initial release
+  // (CREATE TABLE IF NOT EXISTS above only helps fresh databases)
+  const columnMigrations = [
+    `ALTER TABLE expense_templates ADD COLUMN frequency TEXT NOT NULL DEFAULT 'monthly';`,
+    `ALTER TABLE expense_templates ADD COLUMN anchor_date TEXT;`,
+  ];
+  for (const query of columnMigrations) {
+    try {
+      await db.run(query);
+    } catch (err) {
+      // Ignore "duplicate column name" — means this migration already ran
+      if (!(err instanceof Error) || !/duplicate column/i.test(err.message)) {
+        throw err;
+      }
+    }
   }
 
   // 2. If database is already initialized, skip

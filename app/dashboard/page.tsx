@@ -92,6 +92,45 @@ export default async function DashboardPage() {
           <h3 className="font-bold text-sm text-foreground">Current Account Balances</h3>
           <AccountBalanceBarChart data={accountBalances} />
         </div>
+
+        {/* Per-Person Balance Breakdown */}
+        <div className="glass-panel p-5 rounded-3xl space-y-4">
+          <h3 className="font-bold text-base flex items-center gap-2 text-foreground">
+            <Wallet className="w-4 h-4 text-primary" />
+            Per-Person Breakdown
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="glass-card p-4 rounded-2xl space-y-1">
+              <div className="text-xs text-muted-foreground">Total Balance</div>
+              <div className="text-lg font-bold text-foreground">
+                ₹{accountBalances.reduce((sum, acc) => sum + acc.currentBalance, 0).toLocaleString()}
+              </div>
+            </div>
+            <div className="glass-card p-4 rounded-2xl space-y-1">
+              <div className="text-xs text-muted-foreground">Total Projected Balance</div>
+              <div className="text-lg font-bold text-purple-400">
+                ₹{accountBalances.reduce((sum, acc) => sum + acc.projectedBalance, 0).toLocaleString()}
+              </div>
+            </div>
+            {["Siddharth", "Isha"].map((personName) => {
+              const ownedAccounts = accountBalances.filter((acc) => acc.owner === personName);
+              const balance = ownedAccounts.reduce((sum, acc) => sum + acc.currentBalance, 0);
+              const projectedBalance = ownedAccounts.reduce((sum, acc) => sum + acc.projectedBalance, 0);
+              return (
+                <React.Fragment key={personName}>
+                  <div className="glass-card p-4 rounded-2xl space-y-1">
+                    <div className="text-xs text-muted-foreground">{personName} Balance</div>
+                    <div className="text-lg font-bold text-emerald-400">₹{balance.toLocaleString()}</div>
+                  </div>
+                  <div className="glass-card p-4 rounded-2xl space-y-1">
+                    <div className="text-xs text-muted-foreground">{personName} Projected Balance</div>
+                    <div className="text-lg font-bold text-purple-400">₹{projectedBalance.toLocaleString()}</div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   }
@@ -125,6 +164,18 @@ export default async function DashboardPage() {
   const projectedMonthEndBalance = accountBalances.reduce((sum, acc) => sum + acc.projectedBalance, 0);
   const savingsAmount = Math.max(0, totalIncome - paidExpenses);
   const savingsPercentage = totalIncome > 0 ? Math.round((savingsAmount / totalIncome) * 100) : 0;
+
+  // Per-person breakdown (attributed via the paying/owning account)
+  const accountOwnerMap = new Map(accountBalances.map((acc) => [acc.accountId, acc.owner]));
+  const personStats = ["Siddharth", "Isha"].map((personName) => {
+    const expenses = monthExpensesList
+      .filter((exp) => accountOwnerMap.get(exp.paymentAccountId) === personName)
+      .reduce((sum, exp) => sum + exp.amount, 0);
+    const ownedAccounts = accountBalances.filter((acc) => acc.owner === personName);
+    const balance = ownedAccounts.reduce((sum, acc) => sum + acc.currentBalance, 0);
+    const projectedBalance = ownedAccounts.reduce((sum, acc) => sum + acc.projectedBalance, 0);
+    return { name: personName, expenses, balance, projectedBalance };
+  });
 
   // Upcoming Fixed Expenses (next 3-5)
   const todayStr = now.toISOString().split("T")[0];
@@ -271,6 +322,48 @@ export default async function DashboardPage() {
             ₹{savingsAmount.toLocaleString()} <span className="text-xs font-semibold text-muted-foreground">({savingsPercentage}%)</span>
           </div>
           <p className="text-[11px] text-muted-foreground">Current monthly savings</p>
+        </div>
+      </div>
+
+      {/* Per-Person Breakdown */}
+      <div className="glass-panel p-5 rounded-3xl space-y-4">
+        <h3 className="font-bold text-base flex items-center gap-2 text-foreground">
+          <Wallet className="w-4 h-4 text-primary" />
+          Per-Person Breakdown
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3">
+          <div className="glass-card p-4 rounded-2xl space-y-1">
+            <div className="text-xs text-muted-foreground">Total Expenses</div>
+            <div className="text-lg font-bold text-foreground">₹{budgetedExpenses.toLocaleString()}</div>
+          </div>
+          <div className="glass-card p-4 rounded-2xl space-y-1">
+            <div className="text-xs text-muted-foreground">Total Balance</div>
+            <div className="text-lg font-bold text-foreground">₹{currentCashAvailable.toLocaleString()}</div>
+          </div>
+          <div className="glass-card p-4 rounded-2xl space-y-1">
+            <div className="text-xs text-muted-foreground">Total Projected Balance</div>
+            <div className={`text-lg font-bold ${projectedMonthEndBalance >= 0 ? "text-purple-400" : "text-destructive"}`}>
+              ₹{projectedMonthEndBalance.toLocaleString()}
+            </div>
+          </div>
+          {personStats.map((p) => (
+            <React.Fragment key={p.name}>
+              <div className="glass-card p-4 rounded-2xl space-y-1">
+                <div className="text-xs text-muted-foreground">{p.name} Expenses</div>
+                <div className="text-lg font-bold text-amber-400">₹{p.expenses.toLocaleString()}</div>
+              </div>
+              <div className="glass-card p-4 rounded-2xl space-y-1">
+                <div className="text-xs text-muted-foreground">{p.name} Balance</div>
+                <div className="text-lg font-bold text-emerald-400">₹{p.balance.toLocaleString()}</div>
+              </div>
+              <div className="glass-card p-4 rounded-2xl space-y-1">
+                <div className="text-xs text-muted-foreground">{p.name} Projected Balance</div>
+                <div className={`text-lg font-bold ${p.projectedBalance >= 0 ? "text-purple-400" : "text-destructive"}`}>
+                  ₹{p.projectedBalance.toLocaleString()}
+                </div>
+              </div>
+            </React.Fragment>
+          ))}
         </div>
       </div>
 

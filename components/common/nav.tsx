@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,6 +15,8 @@ import {
   Bell,
   LogOut,
   Wallet,
+  MoreHorizontal,
+  X,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth-actions";
 import { SubmitButton } from "@/components/common/submit-button";
@@ -36,6 +38,8 @@ const desktopManagementItems = [
 
 export function Navigation({ userDisplayName }: { userDisplayName?: string }) {
   const pathname = usePathname();
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const isMoreActive = desktopManagementItems.some((item) => pathname.startsWith(item.href));
 
   return (
     <>
@@ -143,8 +147,62 @@ export function Navigation({ userDisplayName }: { userDisplayName?: string }) {
               </Link>
             );
           })}
+          <button
+            onClick={() => setIsMoreOpen(true)}
+            className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-xl min-w-[56px] min-h-[48px] transition-all duration-150 ${
+              isMoreActive ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <MoreHorizontal className={`w-5 h-5 mb-0.5 ${isMoreActive ? "scale-110" : ""}`} />
+            <span className="text-[10px] tracking-tight">More</span>
+          </button>
         </nav>
       </div>
+
+      {/* Mobile "More" Sheet: Accounts, Categories, Templates, Notifications */}
+      {isMoreOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm"
+          onClick={() => setIsMoreOpen(false)}
+        >
+          <div
+            className="w-full bg-card border-t border-border rounded-t-3xl p-4 pb-8 space-y-3 shadow-2xl animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-2 pb-2">
+              <h3 className="font-bold text-sm text-foreground">Management</h3>
+              <button
+                onClick={() => setIsMoreOpen(false)}
+                aria-label="Close"
+                className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {desktopManagementItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMoreOpen(false)}
+                    className={`flex items-center gap-2.5 px-3.5 py-3 rounded-2xl font-medium text-sm transition-all duration-200 ${
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                        : "bg-accent/40 text-muted-foreground hover:text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

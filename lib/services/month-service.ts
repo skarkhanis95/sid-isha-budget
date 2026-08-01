@@ -16,6 +16,48 @@ export function resolveDueDate(year: number, month: number, dueDay: number | nul
   return `${year}-${pad(month)}-${pad(resolvedDay)}`;
 }
 
+const FREQUENCY_INTERVAL_MONTHS: Record<string, number> = {
+  quarterly: 3,
+  half_yearly: 6,
+  yearly: 12,
+};
+
+// Determines whether a template with the given frequency/anchorDate should
+// produce an expense in the target (year, month), and what day-of-month to use.
+export function resolveTemplateOccurrence(
+  frequency: string,
+  anchorDate: string | null | undefined,
+  targetYear: number,
+  targetMonth: number
+): { shouldOccur: boolean; day: number | null } {
+  if (frequency === "monthly" || !frequency) {
+    return { shouldOccur: true, day: null }; // caller falls back to dueDay
+  }
+
+  if (!anchorDate) {
+    // Misconfigured non-monthly template with no anchor date — skip rather than guess.
+    return { shouldOccur: false, day: null };
+  }
+
+  const [anchorYearStr, anchorMonthStr, anchorDayStr] = anchorDate.split("-");
+  const anchorYear = parseInt(anchorYearStr, 10);
+  const anchorMonth = parseInt(anchorMonthStr, 10);
+  const anchorDay = parseInt(anchorDayStr, 10);
+
+  const monthsBetween = (targetYear - anchorYear) * 12 + (targetMonth - anchorMonth);
+
+  if (frequency === "one_time") {
+    return { shouldOccur: monthsBetween === 0, day: anchorDay };
+  }
+
+  const interval = FREQUENCY_INTERVAL_MONTHS[frequency];
+  if (!interval) {
+    return { shouldOccur: false, day: null };
+  }
+
+  return { shouldOccur: monthsBetween >= 0 && monthsBetween % interval === 0, day: anchorDay };
+}
+
 export async function getMonth(monthKey: string) {
   const [existing] = await db
     .select()
@@ -52,9 +94,20 @@ export async function syncTemplatesToMonth(monthId: string) {
     const tmpl = enabledTemplates[i];
     if (existingTemplateIds.has(tmpl.id)) continue;
 
-    const dueDate = tmpl.fixed
-      ? resolveDueDate(monthObj.year, monthObj.month, tmpl.dueDay)
-      : `${monthObj.year}-${String(monthObj.month).padStart(2, "0")}-01`;
+    const { shouldOccur, day } = resolveTemplateOccurrence(
+      tmpl.frequency,
+      tmpl.anchorDate,
+      monthObj.year,
+      monthObj.month
+    );
+    if (!shouldOccur) continue;
+
+    const dueDate =
+      day !== null
+        ? resolveDueDate(monthObj.year, monthObj.month, day)
+        : tmpl.fixed
+        ? resolveDueDate(monthObj.year, monthObj.month, tmpl.dueDay)
+        : `${monthObj.year}-${String(monthObj.month).padStart(2, "0")}-01`;
 
     await db.insert(schema.expenses).values({
       id: `exp_${monthId}_${tmpl.id}`,
