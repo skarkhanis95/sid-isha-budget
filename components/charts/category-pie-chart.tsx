@@ -36,7 +36,7 @@ export function CategoryPieChart({ data }: { data: CategoryData[] }) {
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => [`₹${value.toLocaleString()}`, "Amount"]}
+            formatter={(value: number) => [`₹${value.toLocaleString("en-IN")}`, "Amount"]}
             contentStyle={{ backgroundColor: "#0f172a", borderRadius: "12px", border: "1px solid #1e293b", color: "#f8fafc" }}
           />
           <Legend

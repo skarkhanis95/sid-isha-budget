@@ -53,7 +53,7 @@ export default async function TransfersPage() {
               <div key={idx} className="p-4 rounded-2xl bg-accent/30 border border-indigo-500/30 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-lg text-indigo-400">
-                    ₹{rec.recommendedAmount.toLocaleString()}
+                    ₹{rec.recommendedAmount.toLocaleString("en-IN")}
                   </span>
                   <form
                     action={async () => {
@@ -120,7 +120,7 @@ export default async function TransfersPage() {
                       <td className="py-3 px-4 font-medium text-foreground">{tr.transferDate}</td>
                       <td className="py-3 px-4 text-muted-foreground">{fromAcc}</td>
                       <td className="py-3 px-4 text-emerald-400 font-medium">{toAcc}</td>
-                      <td className="py-3 px-4 font-bold text-foreground">₹{tr.amount.toLocaleString()}</td>
+                      <td className="py-3 px-4 font-bold text-foreground">₹{tr.amount.toLocaleString("en-IN")}</td>
                       <td className="py-3 px-4 text-muted-foreground">{tr.notes || "-"}</td>
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">

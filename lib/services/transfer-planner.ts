@@ -46,7 +46,7 @@ export async function generateTransferRecommendations(monthId?: string): Promise
           toAccountId: deficitAcc.accountId,
           toAccountName: deficitAcc.accountName,
           recommendedAmount: Math.round(transferAmount * 100) / 100,
-          reason: `Cover projected shortfall of ₹${Math.abs(deficitAcc.projectedBalance).toLocaleString()} in ${deficitAcc.accountName}`,
+          reason: `Cover projected shortfall of ₹${Math.abs(deficitAcc.projectedBalance).toLocaleString("en-IN")} in ${deficitAcc.accountName}`,
         });
 
         source.availableSurplus -= transferAmount;

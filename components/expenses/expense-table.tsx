@@ -144,7 +144,7 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                     </div>
                   </td>
                   <td className="py-3 px-4 text-muted-foreground">{exp.categoryName || "Unassigned"}</td>
-                  <td className="py-3 px-4 font-bold text-foreground">₹{exp.amount.toLocaleString()}</td>
+                  <td className="py-3 px-4 font-bold text-foreground">₹{exp.amount.toLocaleString("en-IN")}</td>
                   <td className="py-3 px-4 text-muted-foreground">{exp.dueDate}</td>
                   <td className="py-3 px-4 text-muted-foreground">{exp.accountName || "Account"}</td>
                   <td className="py-3 px-4">

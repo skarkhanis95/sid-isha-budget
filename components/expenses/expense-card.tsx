@@ -86,7 +86,7 @@ export function ExpenseCard({ expense, onEdit }: ExpenseCardProps) {
         </div>
 
         <div className="text-right">
-          <div className="font-bold text-lg text-foreground">₹{expense.amount.toLocaleString()}</div>
+          <div className="font-bold text-lg text-foreground">₹{expense.amount.toLocaleString("en-IN")}</div>
           <div className="mt-1">{getStatusBadge()}</div>
         </div>
       </div>

@@ -127,7 +127,7 @@ export function ReportsClient({
             <span>Total Expenses ({period.replace("_", " ")})</span>
             <BarChart2 className="w-4 h-4 text-primary" />
           </div>
-          <div className="text-xl font-bold text-foreground">₹{totalExpenseAmount.toLocaleString()}</div>
+          <div className="text-xl font-bold text-foreground">₹{totalExpenseAmount.toLocaleString("en-IN")}</div>
           <p className="text-[11px] text-muted-foreground">{selectedExpenses.length} entries</p>
         </div>
 
@@ -137,7 +137,7 @@ export function ReportsClient({
             <Award className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-xl font-bold text-amber-400">
-            ₹{highestExpense ? highestExpense.amount.toLocaleString() : 0}
+            ₹{highestExpense ? highestExpense.amount.toLocaleString("en-IN") : 0}
           </div>
           <p className="text-[11px] text-muted-foreground">{highestExpense ? highestExpense.name : "-"}</p>
         </div>
@@ -149,7 +149,7 @@ export function ReportsClient({
           </div>
           <div className="text-xl font-bold text-pink-400">{largestCategory ? largestCategory.name : "-"}</div>
           <p className="text-[11px] text-muted-foreground">
-            ₹{largestCategory ? largestCategory.amount.toLocaleString() : 0}
+            ₹{largestCategory ? largestCategory.amount.toLocaleString("en-IN") : 0}
           </p>
         </div>
       </div>

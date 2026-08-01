@@ -24,7 +24,7 @@ export function AccountBalanceBarChart({ data }: { data: AccountData[] }) {
           <XAxis type="number" stroke="#94a3b8" fontSize={11} tickFormatter={(val) => `₹${val / 1000}k`} />
           <YAxis type="category" dataKey="accountName" stroke="#94a3b8" fontSize={11} tickLine={false} width={90} />
           <Tooltip
-            formatter={(value: number) => [`₹${value.toLocaleString()}`, "Balance"]}
+            formatter={(value: number) => [`₹${value.toLocaleString("en-IN")}`, "Balance"]}
             contentStyle={{ backgroundColor: "#0f172a", borderRadius: "12px", border: "1px solid #1e293b", color: "#f8fafc" }}
           />
           <Bar dataKey="currentBalance" radius={[0, 6, 6, 0]}>

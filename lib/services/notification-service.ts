@@ -54,12 +54,12 @@ export async function processDailyNotifications() {
       const targetAccBalance = accountBalances.find((b) => b.accountId === exp.paymentAccountId);
       const isShortfall = targetAccBalance ? targetAccBalance.hasShortfall : false;
 
-      let msg = `${exp.name} is due on ${exp.dueDate}. Please keep ${accName} funded with ₹${exp.amount.toLocaleString()}.`;
+      let msg = `${exp.name} is due on ${exp.dueDate}. Please keep ${accName} funded with ₹${exp.amount.toLocaleString("en-IN")}.`;
 
       if (isShortfall) {
         const rec = recommendations.find((r) => r.toAccountId === exp.paymentAccountId);
         if (rec) {
-          msg += ` (Recommendation: Transfer ₹${rec.recommendedAmount.toLocaleString()} from ${rec.fromAccountName}).`;
+          msg += ` (Recommendation: Transfer ₹${rec.recommendedAmount.toLocaleString("en-IN")} from ${rec.fromAccountName}).`;
         }
       }
 
